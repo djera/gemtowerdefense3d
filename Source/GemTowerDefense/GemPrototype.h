@@ -32,6 +32,7 @@ struct FGemEnemy
     float MaxHealth = 0;
     int32 RouteIndex = 1;
     bool bFlying = false;
+    bool bLeaked = false;
     float Slow = 0;
     float SlowTime = 0;
     float Poison = 0;
@@ -87,6 +88,7 @@ class AGemBoard : public AActor
     GENERATED_BODY()
 public:
     AGemBoard();
+    virtual void PostLoad() override;
     virtual void BeginPlay() override;
     virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
     virtual void Tick(float DeltaTime) override;
@@ -102,6 +104,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 Score = 0;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 OffersPlaced = 0;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 Selected = INDEX_NONE;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 SelectedEnemy = INDEX_NONE;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") TArray<FGemPiece> Pieces;
     UPROPERTY() TArray<FGemEnemy> Enemies;
     static constexpr int32 GridSize = 20;
@@ -114,6 +117,8 @@ public:
     UFUNCTION(BlueprintCallable) void Regenerate();
     UFUNCTION(BlueprintCallable, CallInEditor) void LoadDefaultLayout();
     UFUNCTION(BlueprintCallable) bool KeepSelected();
+    UFUNCTION(BlueprintPure) bool CanKeepSelected() const;
+    UFUNCTION(BlueprintCallable) bool ClearAllGems();
     UFUNCTION(BlueprintCallable) bool MergeSelected(int32 Count);
     UFUNCTION(BlueprintCallable) bool CraftSelected(int32 Recipe);
     UFUNCTION(BlueprintCallable) void SelectAt(FIntPoint HalfCell);
@@ -121,6 +126,9 @@ public:
     UFUNCTION(BlueprintPure) bool CanMerge(int32 Count) const;
     UFUNCTION(BlueprintPure) bool CanCraft(int32 Recipe) const;
     UFUNCTION(BlueprintPure) FString SelectedDescription() const;
+    UFUNCTION(BlueprintPure) TArray<FString> SelectedInfo() const;
+    UFUNCTION(BlueprintCallable) void SelectEnemy(int32 Index);
+    bool SelectRay(FVector Origin,FVector Direction);
     UFUNCTION(BlueprintPure) bool HasValidRoute() const;
     UFUNCTION(BlueprintPure) int32 RouteLength() const { return Route.Num(); }
     UFUNCTION(BlueprintCallable) void ResetRun();
@@ -187,6 +195,8 @@ public:
     FString Status = TEXT("Choose a position to place a gem");
     bool bHover = false;
     bool bRecipesOpen = false;
+    bool bShowSelection = false;
+    int32 InfoScroll = 0;
     bool bCameraDragging = false;
     bool bHasPreviousMouse = false;
     FVector2D PreviousMouse = FVector2D::ZeroVector;

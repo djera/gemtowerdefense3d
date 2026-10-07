@@ -95,6 +95,7 @@ const FTowerDefinition* AGemBoard::Definition(int32 Index) const
 }
 FString AGemBoard::SelectedDescription() const
 {
+    if (Enemies.IsValidIndex(SelectedEnemy)) return FString::Printf(TEXT("%s enemy / %.0f of %.0f health"),Enemies[SelectedEnemy].bFlying?TEXT("Flying"):TEXT("Ground"),Enemies[SelectedEnemy].Health,Enemies[SelectedEnemy].MaxHealth);
     if (!Pieces.IsValidIndex(Selected)) return TEXT("Select a gem or stone");
     if (Pieces[Selected].bRock) return TEXT("Stone block / remove with X");
     const auto* Def=Definition(Selected);
@@ -106,7 +107,86 @@ int32 AGemBoard::PieceAt(FIntPoint P) const
     for (int32 I=Occupied.Num()-1;I>=0;--I) if (FMath::Abs(P.X-Occupied[I].X)<=1 && FMath::Abs(P.Y-Occupied[I].Y)<=1) return I;
     return INDEX_NONE;
 }
-void AGemBoard::SelectAt(FIntPoint P) { Selected=PieceAt(P); }
+void AGemBoard::SelectAt(FIntPoint P) { Selected=PieceAt(P); SelectedEnemy=INDEX_NONE; }
+void AGemBoard::SelectEnemy(int32 Index) { SelectedEnemy=Enemies.IsValidIndex(Index)?Index:INDEX_NONE; Selected=INDEX_NONE; }
+bool AGemBoard::SelectRay(FVector Origin,FVector Direction)
+{
+    float Closest=10000.f; int32 Gem=INDEX_NONE,Enemy=INDEX_NONE;
+    auto Hit=[&](UStaticMeshComponent* Mesh)
+    {
+        if (!Mesh || !Mesh->GetStaticMesh()) return false;
+        const FBox Box=Mesh->GetStaticMesh()->GetBoundingBox().TransformBy(Mesh->GetComponentTransform()).ExpandBy(8.f);
+        float Near=0,Far=Closest;
+        for (int32 Axis=0;Axis<3;++Axis)
+        {
+            if (FMath::Abs(Direction[Axis])<.000001f)
+            { if (Origin[Axis]<Box.Min[Axis] || Origin[Axis]>Box.Max[Axis]) return false; }
+            else
+            {
+                float A=(Box.Min[Axis]-Origin[Axis])/Direction[Axis],B=(Box.Max[Axis]-Origin[Axis])/Direction[Axis];
+                if (A>B) Swap(A,B);
+                Near=FMath::Max(Near,A); Far=FMath::Min(Far,B);
+                if (Near>Far) return false;
+            }
+        }
+        if (Near>=Closest) return false;
+        Closest=Near; return true;
+    };
+    for (int32 I=0;I<Placed.Num();++I) if (Hit(Placed[I])) { Gem=I; Enemy=INDEX_NONE; }
+    for (int32 I=0;I<Enemies.Num();++I) if (Enemies[I].Health>0 && Hit(Enemies[I].Mesh)) { Enemy=I; Gem=INDEX_NONE; }
+    Selected=Gem; SelectedEnemy=Enemy;
+    return Gem!=INDEX_NONE || Enemy!=INDEX_NONE;
+}
+
+TArray<FString> AGemBoard::SelectedInfo() const
+{
+    TArray<FString> Lines;
+    if (Enemies.IsValidIndex(SelectedEnemy))
+    {
+        const auto& E=Enemies[SelectedEnemy]; const auto& W=Waves[Wave-1];
+        Lines.Add(E.bFlying?TEXT("Flying enemy"):TEXT("Ground enemy"));
+        Lines.Add(FString::Printf(TEXT("Health: %.0f / %.0f"),E.Health,E.MaxHealth));
+        Lines.Add(FString::Printf(TEXT("Speed: %.0f units/s"),W.Speed*(E.SlowTime>0?1-E.Slow:1)));
+        Lines.Add(FString::Printf(TEXT("Armor: %.0f"),W.Armor-(E.ArmorTime>0?E.ArmorPenalty:0)));
+        Lines.Add(TEXT("Damage: 1 life on escape")); Lines.Add(TEXT("Range: -- (moving enemy)"));
+        Lines.Add(TEXT("Active modifiers:"));
+        if (E.SlowTime>0) Lines.Add(FString::Printf(TEXT("Slowed %.0f%% / %.1fs"),E.Slow*100,E.SlowTime));
+        if (E.PoisonTime>0) Lines.Add(FString::Printf(TEXT("Poison %.0f damage/s / %.1fs"),E.Poison,E.PoisonTime));
+        if (E.StunTime>0) Lines.Add(FString::Printf(TEXT("Stunned / %.1fs"),E.StunTime));
+        if (E.ArmorTime>0) Lines.Add(FString::Printf(TEXT("Armor reduced by %.0f / %.1fs"),E.ArmorPenalty,E.ArmorTime));
+        if (Lines.Num()==7) Lines.Add(TEXT("None"));
+        return Lines;
+    }
+    if (!Pieces.IsValidIndex(Selected)) return {TEXT("Select a gem, stone or enemy"),TEXT("Left click an object on the board.")};
+    if (Pieces[Selected].bRock) return {TEXT("Stone block"),TEXT("Blocks ground movement"),TEXT("Damage: --"),TEXT("Range: --"),TEXT("Modifiers: none"),TEXT("Remove during the build phase.")};
+    const auto* D=Definition(Selected); if (!D) return {TEXT("Gem definition missing")};
+    Lines.Add(D->Name); Lines.Add(Pieces[Selected].bPending?TEXT("Offered gem / choose one to build"):TEXT("Built tower"));
+    Lines.Add(FString::Printf(TEXT("Damage: %.0f - %.0f"),D->Damage+D->Dice,D->Damage+D->Dice*D->Sides));
+    Lines.Add(FString::Printf(TEXT("Range: %.1f tiles / %.0f units"),D->Range/100,D->Range));
+    Lines.Add(FString::Printf(TEXT("Attack interval: %.2fs"),D->Interval));
+    Lines.Add(FString::Printf(TEXT("Targets: %d / %s"),D->Targets,D->bGround?(D->bAir?TEXT("ground + air"):TEXT("ground")):TEXT("air")));
+    if (!D->Upgrade.IsEmpty()) Lines.Add(FString::Printf(TEXT("Upgrade: %d gold"),D->UpgradeCost));
+    Lines.Add(TEXT("Modifiers:"));
+    if (D->Modifiers.IsEmpty()) Lines.Add(TEXT("None"));
+    for (const auto& M:D->Modifiers)
+    {
+        const FString& T=M.Type;
+        if (T==TEXT("critical")) Lines.Add(FString::Printf(TEXT("Critical: %.0f%% chance, x%.1f"),M.Get(TEXT("chance"))*100,M.Get(TEXT("multiplier"))));
+        else if (T==TEXT("poison")) { Lines.Add(FString::Printf(TEXT("Poison: %.0f damage/s for %.1fs"),M.Get(TEXT("damage_per_second")),M.Get(TEXT("duration")))); Lines.Add(FString::Printf(TEXT("Poison slow: %.0f%%"),M.Get(TEXT("slow"))*100)); }
+        else if (T==TEXT("splash")) Lines.Add(FString::Printf(TEXT("Splash: %.1f tile radius"),M.Get(TEXT("radius"))/100));
+        else if (T==TEXT("slow") || T==TEXT("splash_slow")) Lines.Add(FString::Printf(TEXT("%s: %.0f%% for %.1fs"),T==TEXT("slow")?TEXT("Slow"):TEXT("Splash slow"),M.Get(TEXT("fraction"))*100,M.Get(TEXT("duration"))));
+        else if (T==TEXT("attack_speed_aura") || T==TEXT("damage_aura") || T==TEXT("slow_aura")) { Lines.Add(FString::Printf(TEXT("%s: %.0f%%"),T==TEXT("attack_speed_aura")?TEXT("Attack speed aura"):T==TEXT("damage_aura")?TEXT("Damage aura"):TEXT("Slow aura"),M.Get(TEXT("fraction"))*100)); Lines.Add(FString::Printf(TEXT("Aura radius: %.1f tiles"),M.Get(TEXT("radius"))/100)); }
+        else if (T==TEXT("stun")) Lines.Add(FString::Printf(TEXT("Stun: %.0f%% chance for %.2fs"),M.Get(TEXT("chance"))*100,M.Get(TEXT("duration"))));
+        else if (T==TEXT("armor_reduction") || T==TEXT("armor_aura")) Lines.Add(FString::Printf(TEXT("%s: -%.0f armor"),T==TEXT("armor_aura")?TEXT("Armor aura"):TEXT("Armor reduction"),M.Get(TEXT("amount"))));
+        else if (T==TEXT("burn")) Lines.Add(FString::Printf(TEXT("Burn: %.0f damage/s"),M.Get(TEXT("damage_per_second"))));
+        else if (T==TEXT("bonus_gold")) Lines.Add(FString::Printf(TEXT("Gold: %.0f%% chance of +%.0f"),M.Get(TEXT("chance"))*100,M.Get(TEXT("amount"))));
+        else if (T==TEXT("mana")) Lines.Add(FString::Printf(TEXT("Mana: %.0f max, +%.1f/s"),M.Get(TEXT("maximum")),M.Get(TEXT("regeneration"))));
+        else if (T==TEXT("frost_nova")) Lines.Add(FString::Printf(TEXT("Frost nova: %.0f damage"),M.Get(TEXT("damage"))));
+        else if (T==TEXT("flame_strike")) Lines.Add(FString::Printf(TEXT("Flame strike: %.0f damage/s"),M.Get(TEXT("damage_per_second"))));
+        else Lines.Add(T.Replace(TEXT("_"),TEXT(" ")));
+    }
+    return Lines;
+}
 bool AGemBoard::FindRoute(TArray<FVector>& Result,const FIntPoint* ExtraBlock) const
 {
     Result.Reset();
@@ -171,10 +251,10 @@ void AGemBoard::ApplyPieceVisual(int32 I)
     if (!Pieces.IsValidIndex(I)) return;
     if (Pieces[I].bRock)
     {
-        Placed[I]->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")));
+        Placed[I]->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Prototype/Meshes/SM_MazeStone.SM_MazeStone")));
         Placed[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Stone.M_Stone")));
-        Placed[I]->SetWorldScale3D(FVector(.90f,.90f,.40f));
-        Placed[I]->SetWorldLocation(PlacementPosition(Occupied[I])+FVector(0,0,18));
+        ApplyGemSize(Placed[I]);
+        Placed[I]->SetWorldLocation(PlacementPosition(Occupied[I]));
     }
     else if (const auto* Def=Definition(I))
     {
@@ -187,10 +267,19 @@ void AGemBoard::ApplyPieceVisual(int32 I)
 void AGemBoard::MakeRock(int32 I) { Pieces[I].bRock=true; Pieces[I].bPending=false; Pieces[I].Special=NAME_None; ApplyPieceVisual(I); }
 bool AGemBoard::KeepSelected()
 {
-    if (Phase!=ERoundPhase::Choosing || !Pieces.IsValidIndex(Selected) || Pieces[Selected].bRock || !Pieces[Selected].bPending) return false;
+    if (!CanKeepSelected()) return false;
     for (int32 I=0;I<Pieces.Num();++I) if (Pieces[I].bPending)
     { if (I==Selected) Pieces[I].bPending=false; else MakeRock(I); }
     StartWave(); return true;
+}
+bool AGemBoard::CanKeepSelected() const
+{
+    return Phase==ERoundPhase::Choosing && OffersPlaced==5 && SelectedEnemy==INDEX_NONE && Pieces.IsValidIndex(Selected) && !Pieces[Selected].bRock && Pieces[Selected].bPending;
+}
+bool AGemBoard::ClearAllGems()
+{
+    if (Phase!=ERoundPhase::Placing && Phase!=ERoundPhase::Choosing) return false;
+    ClearGems(); OffersPlaced=0; Phase=ERoundPhase::Placing; RebuildRoute(); return true;
 }
 bool AGemBoard::CanMerge(int32 Count) const
 {
@@ -279,6 +368,7 @@ void AGemBoard::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     if (Selected>=0 && Placed.IsValidIndex(Selected))
         DrawDebugBox(GetWorld(),PlacementPosition(Occupied[Selected])+FVector(0,0,25),FVector(49,49,25),FColor::Yellow,false,-1,0,2);
+    if (Enemies.IsValidIndex(SelectedEnemy)) DrawDebugSphere(GetWorld(),Enemies[SelectedEnemy].Mesh->GetComponentLocation(),24,12,FColor::Yellow,false,-1,0,2);
     if (Phase!=ERoundPhase::Combat) return;
     const float DT=FMath::Min(DeltaTime,.1f);
     const auto& Current=Waves[Wave-1]; SpawnTimer-=DT;
@@ -315,7 +405,7 @@ void AGemBoard::Tick(float DeltaTime)
             if (Distance<=Travel) { E.Mesh->SetWorldLocation(Path[E.RouteIndex++]); Travel-=Distance; }
             else { E.Mesh->SetWorldLocation(Position+Delta.GetSafeNormal()*Travel); Travel=0; }
         }
-        if (E.RouteIndex>=Path.Num() && E.Health>0) { --Lives; E.Health=-1; }
+        if (E.RouteIndex>=Path.Num() && E.Health>0) { --Lives; E.Health=0; E.bLeaked=true; }
     }
     for (int32 I=0;I<Pieces.Num();++I)
     {
@@ -387,8 +477,10 @@ void AGemBoard::Tick(float DeltaTime)
     }
     for (int32 I=Enemies.Num()-1;I>=0;--I) if (Enemies[I].Health<=0)
     {
-        if (Enemies[I].Health!=-1) { Score+=10*Wave; if (auto* PC=Cast<AGemController>(GetWorld()->GetFirstPlayerController())) PC->Gold+=Current.Reward; }
+        if (!Enemies[I].bLeaked) { Score+=10*Wave; if (auto* PC=Cast<AGemController>(GetWorld()->GetFirstPlayerController())) PC->Gold+=Current.Reward; }
         Enemies[I].Mesh->DestroyComponent(); Enemies.RemoveAt(I);
+        if (SelectedEnemy==I) SelectedEnemy=INDEX_NONE;
+        else if (SelectedEnemy>I) --SelectedEnemy;
     }
     if (Lives<=0) { Phase=ERoundPhase::Defeat; return; }
     if (Spawned>=WaveSize && Enemies.IsEmpty()) EndCombat();

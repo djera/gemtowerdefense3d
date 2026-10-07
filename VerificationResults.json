@@ -14,6 +14,21 @@
     "Half-cell world mapping",
     "World position snaps correctly",
     "Exactly 400 typed tiles",
-    "All four terrain types appear"
+    "Map has snow/grass, roads, intersections and checkpoints",
+    "Exact ASCII tile counts",
+    "Every tile matches its ASCII coordinate",
+    "Entry and exit match the supplied map",
+    "Entry and exit cannot be covered",
+    "Entry and exit use the road appearance",
+    "Default route connects E through checkpoints to X",
+    "Default checkpoint order follows numeric labels",
+    "100 generated maps have exactly six intact numbered T checkpoints",
+    "All checkpoint roads are connected in 100 maps",
+    "All 100 maps have one protected entry and exit on the boundary, connected to the road network",
+    "Regenerate produces varied maps",
+    "Restore default recovers supplied array",
+    "Camera rotates and clamps pitch above the board",
+    "Camera pans horizontally without changing altitude",
+    "Camera reset restores the initial view"
   ]
 }

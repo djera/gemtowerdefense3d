@@ -27,6 +27,23 @@ for name,rgb in colors.items():
     edit.recompile_material(mat); unreal.EditorAssetLibrary.save_loaded_asset(mat)
 if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Gems/Meshes/SM_Topaz_Perfect'):
     runpy.run_path(str(ROOT/'assets/gems/Unreal/import_gems.py'),run_name='__main__')
+if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Prototype/Meshes/SM_MazeStone'):
+    task=unreal.AssetImportTask()
+    task.filename=str(ROOT/'assets/stone/SM_MazeStone.fbx')
+    task.destination_path='/Game/Prototype/Meshes'
+    task.destination_name='SM_MazeStone'
+    task.automated=True; task.save=True
+    options=unreal.FbxImportUI()
+    options.import_mesh=True; options.import_as_skeletal=False
+    options.import_materials=False; options.import_textures=False
+    options.automated_import_should_detect_type=False
+    options.mesh_type_to_import=unreal.FBXImportType.FBXIT_STATIC_MESH
+    task.options=options
+    tools.import_asset_tasks([task])
+    assert task.imported_object_paths, 'Stone mesh import failed'
+stone=unreal.load_asset('/Game/Prototype/Meshes/SM_MazeStone')
+stone.set_material(0,unreal.load_asset('/Game/Prototype/Materials/M_Stone'))
+unreal.EditorAssetLibrary.save_loaded_asset(stone)
 level=unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 if unreal.EditorAssetLibrary.does_asset_exist('/Game/Maps/Prototype'):
     level.load_level('/Game/Maps/Prototype')
@@ -34,7 +51,7 @@ else:
     level.new_level('/Game/Maps/Prototype')
 actors=unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 board_class=unreal.load_class(None,'/Script/GemTowerDefense.GemBoard')
-boards=[a for a in actors.get_all_level_actors() if isinstance(a,board_class)]
+boards=[a for a in actors.get_all_level_actors() if a.get_class()==board_class]
 board=boards[0] if boards else actors.spawn_actor_from_class(board_class,unreal.Vector())
 board.set_actor_label('GemBoard_20x20')
 board.load_default_layout()
