@@ -26,7 +26,7 @@ def block(text,start):
     raise ValueError('Unbalanced block')
 def assignments(text):
     result={}
-    for m in re.finditer(r'this\.(\w+)\s*=\s*(![01]|-?(?:\d*\.\d+|\d+)(?:e[+-]?\d+)?)(?=[,;)])',text):
+    for m in re.finditer(r'this\.(\w+)\s*=\s*(![01]|-?(?:\d*\.\d+|\d+)(?:e[+-]?\d+)?)(?=[,;)]|$)',text):
         token=m[2]
         result[m[1]]=token=='!0' if token.startswith('!') else float(token)
     return result
@@ -63,11 +63,13 @@ def definition(id,name,p,quality=4):
     if p.get('armorPenalty',False): mod('armor_reduction',amount=p['armorPenaltyValue'],duration=p['armorPenaltyDuration'])
     if p.get('proxAuraArmorPenalty',0): mod('armor_aura',amount=p['proxAuraArmorPenalty'],radius=p['proxAuraRange']*scale,ground=p['proxAuraGround'],air=p['proxAuraFlying'])
     if p.get('proxAuraSpeedPenalty',0): mod('slow_aura',fraction=p['proxAuraSpeedPenalty'],radius=p['proxAuraRange']*scale)
-    if p.get('damageBurn',False): mod('burn',damage_per_second={'StarRuby':40,'BloodStar':50,'FireStar':100}.get(id,0))
+    if p.get('damageBurn',False):
+        average=p.get('damageBase',0)+p.get('numDie',0)*(p.get('sidesPerDie',0)+1)/2
+        mod('burn',damage_per_second=average/p.get('cooldownModifier',1),delivery='instant',derived_from_attack_stats=True)
     if p.get('bonusGoldChance',0): mod('bonus_gold',chance=p['bonusGoldChance'],amount=1)
     if p.get('maxMana',0): mod('mana',maximum=p['maxMana'],regeneration=p['manaRegen'],spell_cost=p['spellCost'],spell_chance=p['spellChance'])
     if p.get('frostnovaDamage',0): mod('frost_nova',damage=p['frostnovaDamage'],radius=p['frostnovaAoeRange']*scale,chance=p['spellChance'])
-    if p.get('flamestrikeDamage',0): mod('flame_strike',damage_per_second=p['flamestrikeDamage'],radius=p['flamestrikeAoeRange']*scale,duration=p['flamestrikeDuration'],chance=p['spellChance'])
+    if p.get('flamestrikeDamage',0): mod('flame_strike',damage_per_second=p['flamestrikeDamage'],radius=p['flamestrikeAoeRange']*scale,duration=p['flamestrikeDuration']/1000,source_duration_ms=p['flamestrikeDuration'],chance=p['spellChance'])
     base=p.get('damageBase',1); dice=int(p.get('numDie',1)); sides=int(p.get('sidesPerDie',1))
     return {'id':id,'name':name,'gem_type':types[type_index],'quality':quality,'model':f'/Game/Gems/Meshes/SM_{types[type_index]}_{qualities[min(quality,4)]}.SM_{types[type_index]}_{qualities[min(quality,4)]}',
         'stats':{'damage_base':base,'damage_dice':dice,'damage_sides':sides,'damage_min':base+dice,'damage_max':base+dice*sides,'range':286*p['rangeModifier']*scale,'source_range':286*p['rangeModifier'],'attack_interval':p.get('cooldownModifier',1),'projectile_speed':500*p.get('projectileModifier',1)*scale,'targets':int(p.get('multiTargets',1)),'attacks_ground':p.get('attacksGround',True),'attacks_air':p.get('attacksFlying',True)},
@@ -92,6 +94,7 @@ for number in range(2,34):
     body=cases[number]; p={**defaults,**assignments(body)}
     if number in (13,14,15): p['cooldownModifier']=.45 if number==15 else .4
     name=enum[number]
+    if name=='AncientBloodStone': p['flamestrikeAoeRange']=10 # Classic branch of the ruleset conditional.
     special.append(definition(name,re.sub(r'(?<!^)(?=[A-Z])',' ',name),p))
 recipes=[]
 section=html[html.index('<center id="special-gem-recipes">'):html.index('id="season-2-slate-recipes"')]

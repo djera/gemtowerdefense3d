@@ -39,6 +39,10 @@ check('Entry and exit match the supplied map',board.entry_cell==p(0,2) and board
 check('Entry and exit cannot be covered',all(not board.can_place(cell) for cell in [p(0,4),p(1,4),p(38,32),p(37,32)]))
 layers={str(c.get_name()):c for c in board.get_components_by_class(unreal.InstancedStaticMeshComponent)}
 check('Entry and exit use the road appearance',layers['Tiles_5'].get_material(0)==layers['Tiles_2'].get_material(0)==layers['Tiles_6'].get_material(0))
+blend=layers['Tiles_0'].get_material(0)
+check('Only S tiles share the terrain blend material',blend==layers['Tiles_1'].get_material(0) and all(layers['Tiles_'+str(i)].get_material(0)!=blend for i in range(2,7)))
+check('Roads use the pastel cel material',layers['Tiles_2'].get_material(0).get_name()=='M_Cel_Road')
+check('Generated stone asset exists',unreal.EditorAssetLibrary.does_asset_exist('/Game/Prototype/Meshes/SM_MazeStone'))
 check('Default route connects E through checkpoints to X',board.has_valid_route())
 check('Default checkpoint order follows numeric labels',list(board.checkpoint_order)==[p(3,2),p(3,10),p(15,10),p(15,2),p(9,2),p(9,16)])
 

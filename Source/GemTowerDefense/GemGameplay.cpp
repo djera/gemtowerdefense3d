@@ -236,12 +236,12 @@ void AGemBoard::RebuildRoute()
         AirRoute.Add(Route.Last()+FVector(0,0,60));
     }
     RouteMarkers->ClearInstances();
-    RouteMarkers->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Path.M_Path")));
+    RouteMarkers->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Path.M_Cel_Path")));
     for (int32 I=0;I<Route.Num();I+=2) RouteMarkers->AddInstance(FTransform(FRotator::ZeroRotator,Route[I]-FVector(0,0,16),FVector(.07f)));
 }
 void AGemBoard::ResetRun()
 {
-    ClearGems(); for (auto& Enemy:Enemies) if (Enemy.Mesh) Enemy.Mesh->DestroyComponent();
+    ClearGems(); for (auto& Enemy:Enemies) { if (Enemy.Outline) Enemy.Outline->DestroyComponent(); if (Enemy.Mesh) Enemy.Mesh->DestroyComponent(); }
     Enemies.Reset(); Areas.Reset(); TowerMana.Reset();
     Wave=1; Lives=20; Score=0; OffersPlaced=0; Selected=INDEX_NONE; Phase=ERoundPhase::Placing;
     RebuildRoute();
@@ -252,7 +252,7 @@ void AGemBoard::ApplyPieceVisual(int32 I)
     if (Pieces[I].bRock)
     {
         Placed[I]->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Prototype/Meshes/SM_MazeStone.SM_MazeStone")));
-        Placed[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Stone.M_Stone")));
+        Placed[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Stone.M_Cel_Stone")));
         ApplyGemSize(Placed[I]);
         Placed[I]->SetWorldLocation(PlacementPosition(Occupied[I]));
     }
@@ -263,6 +263,15 @@ void AGemBoard::ApplyPieceVisual(int32 I)
         Placed[I]->SetStaticMesh(Model); Placed[I]->EmptyOverrideMaterials();
         ApplyGemSize(Placed[I]); Placed[I]->SetWorldLocation(PlacementPosition(Occupied[I]));
     }
+    if (Outlines.IsValidIndex(I)) Outlines[I]->SetStaticMesh(Placed[I]->GetStaticMesh());
+}
+UStaticMeshComponent* AGemBoard::CreateOutline(UStaticMeshComponent* Mesh)
+{
+    auto* Outline=NewObject<UStaticMeshComponent>(this);
+    Outline->SetupAttachment(Mesh); Outline->SetStaticMesh(Mesh->GetStaticMesh());
+    Outline->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_CelOutline.M_CelOutline")));
+    Outline->SetCollisionEnabled(ECollisionEnabled::NoCollision); Outline->SetCastShadow(false);
+    Outline->RegisterComponent(); return Outline;
 }
 void AGemBoard::MakeRock(int32 I) { Pieces[I].bRock=true; Pieces[I].bPending=false; Pieces[I].Special=NAME_None; ApplyPieceVisual(I); }
 bool AGemBoard::KeepSelected()
@@ -376,9 +385,9 @@ void AGemBoard::Tick(float DeltaTime)
     {
         auto* Mesh=NewObject<UStaticMeshComponent>(this); Mesh->SetupAttachment(RootComponent);
         Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
-        Mesh->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Enemy.M_Enemy")));
+        Mesh->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Enemy.M_Cel_Enemy")));
         Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); Mesh->RegisterComponent(); Mesh->SetWorldScale3D(FVector(.28f));
-        FGemEnemy E; E.Mesh=Mesh; E.Health=E.MaxHealth=Current.Health; E.bFlying=Current.bFlying;
+        FGemEnemy E; E.Mesh=Mesh; E.Outline=CreateOutline(Mesh); E.Health=E.MaxHealth=Current.Health; E.bFlying=Current.bFlying;
         Mesh->SetWorldLocation(E.bFlying?AirRoute[0]:Route[0]); Enemies.Add(E);
         ++Spawned; SpawnTimer=Current.SpawnInterval;
     }
@@ -434,7 +443,7 @@ void AGemBoard::Tick(float DeltaTime)
         for (int32 N=0;N<Enemies.Num();++N)
             if (Enemies[N].Health>0 && (Enemies[N].bFlying?D->bAir:D->bGround) && FVector::Dist2D(Enemies[N].Mesh->GetComponentLocation(),Placed[I]->GetComponentLocation())<=D->Range) Targets.Add(N);
         if (Targets.IsEmpty()) continue;
-        AttackCooldown[I]=D->Interval/(1+Haste);
+        AttackCooldown[I]=D->Interval*FMath::Max(.05f,1-Haste);
         for (int32 T=0;T<FMath::Min(D->Targets,Targets.Num());++T)
         {
             auto& E=Enemies[Targets[T]]; float Damage=D->Damage;
@@ -461,7 +470,8 @@ void AGemBoard::Tick(float DeltaTime)
                         if (M.Type==TEXT("flame_strike")) { FGemAreaEffect A; A.Center=E.Mesh->GetComponentLocation(); A.Radius=M.Get(TEXT("radius")); A.Damage=M.Get(TEXT("damage_per_second")); A.Remaining=M.Get(TEXT("duration")); Areas.Add(A); }
                     }
                 }
-                if (M.Type==TEXT("burn")) Damage=M.Get(TEXT("damage_per_second"))*D->Interval;
+                // Burn towers deliver their regular rolled damage instantly;
+                // exported damage_per_second is a display summary of that rate.
             }
             float Armor=Current.Armor-(E.ArmorTime>0?E.ArmorPenalty:0);
             for (int32 J=0;J<Pieces.Num();++J)
@@ -478,6 +488,7 @@ void AGemBoard::Tick(float DeltaTime)
     for (int32 I=Enemies.Num()-1;I>=0;--I) if (Enemies[I].Health<=0)
     {
         if (!Enemies[I].bLeaked) { Score+=10*Wave; if (auto* PC=Cast<AGemController>(GetWorld()->GetFirstPlayerController())) PC->Gold+=Current.Reward; }
+        if (Enemies[I].Outline) Enemies[I].Outline->DestroyComponent();
         Enemies[I].Mesh->DestroyComponent(); Enemies.RemoveAt(I);
         if (SelectedEnemy==I) SelectedEnemy=INDEX_NONE;
         else if (SelectedEnemy>I) --SelectedEnemy;

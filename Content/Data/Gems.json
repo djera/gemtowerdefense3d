@@ -23,9 +23,9 @@
       "stats": {
         "damage_base": 8.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 5,
         "damage_min": 9.0,
-        "damage_max": 9.0,
+        "damage_max": 13.0,
         "range": 550.0,
         "source_range": 143.0,
         "attack_interval": 0.8,
@@ -47,7 +47,7 @@
         "cooldownModifier": 0.8,
         "damageBase": 8.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 5.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -113,9 +113,9 @@
       "stats": {
         "damage_base": 17.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 8,
         "damage_min": 18.0,
-        "damage_max": 18.0,
+        "damage_max": 25.0,
         "range": 618.75,
         "source_range": 160.875,
         "attack_interval": 1.0,
@@ -137,7 +137,7 @@
         "cooldownModifier": 1.0,
         "damageBase": 17.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 8.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -203,9 +203,9 @@
       "stats": {
         "damage_base": 29.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 11,
         "damage_min": 30.0,
-        "damage_max": 30.0,
+        "damage_max": 40.0,
         "range": 687.5,
         "source_range": 178.75,
         "attack_interval": 1.0,
@@ -227,7 +227,7 @@
         "cooldownModifier": 1.0,
         "damageBase": 29.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 11.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -293,9 +293,9 @@
       "stats": {
         "damage_base": 59.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 16,
         "damage_min": 60.0,
-        "damage_max": 60.0,
+        "damage_max": 75.0,
         "range": 715.0,
         "source_range": 185.9,
         "attack_interval": 1.0,
@@ -317,7 +317,7 @@
         "cooldownModifier": 1.0,
         "damageBase": 59.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 16.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -383,9 +383,9 @@
       "stats": {
         "damage_base": 139.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 11,
         "damage_min": 140.0,
-        "damage_max": 140.0,
+        "damage_max": 150.0,
         "range": 825.0,
         "source_range": 214.5,
         "attack_interval": 1.0,
@@ -407,7 +407,7 @@
         "cooldownModifier": 1.0,
         "damageBase": 139.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 11.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -473,9 +473,9 @@
       "stats": {
         "damage_base": 349.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 51,
         "damage_min": 350.0,
-        "damage_max": 350.0,
+        "damage_max": 400.0,
         "range": 907.5,
         "source_range": 235.95,
         "attack_interval": 1.0,
@@ -497,7 +497,7 @@
         "cooldownModifier": 1.0,
         "damageBase": 349.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 51.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -563,9 +563,9 @@
       "stats": {
         "damage_base": 5.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 3,
         "damage_min": 6.0,
-        "damage_max": 6.0,
+        "damage_max": 8.0,
         "range": 192.5,
         "source_range": 50.05,
         "attack_interval": 0.35,
@@ -587,7 +587,7 @@
         "cooldownModifier": 0.35,
         "damageBase": 5.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 3.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -653,9 +653,9 @@
       "stats": {
         "damage_base": 11.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 4,
         "damage_min": 12.0,
-        "damage_max": 12.0,
+        "damage_max": 15.0,
         "range": 200.75,
         "source_range": 52.195,
         "attack_interval": 0.35,
@@ -677,7 +677,7 @@
         "cooldownModifier": 0.35,
         "damageBase": 11.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 4.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -743,9 +743,9 @@
       "stats": {
         "damage_base": 23.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 7,
         "damage_min": 24.0,
-        "damage_max": 24.0,
+        "damage_max": 30.0,
         "range": 209.00000000000003,
         "source_range": 54.34,
         "attack_interval": 0.35,
@@ -767,7 +767,7 @@
         "cooldownModifier": 0.35,
         "damageBase": 23.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 7.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -833,9 +833,9 @@
       "stats": {
         "damage_base": 47.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 8,
         "damage_min": 48.0,
-        "damage_max": 48.0,
+        "damage_max": 55.0,
         "range": 233.75,
         "source_range": 60.775,
         "attack_interval": 0.35,
@@ -857,7 +857,7 @@
         "cooldownModifier": 0.35,
         "damageBase": 47.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 8.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -923,9 +923,9 @@
       "stats": {
         "damage_base": 99.0,
         "damage_dice": 1,
-        "damage_sides": 1,
+        "damage_sides": 21,
         "damage_min": 100.0,
-        "damage_max": 100.0,
+        "damage_max": 120.0,
         "range": 302.50000000000006,
         "source_range": 78.65,
         "attack_interval": 0.35,
@@ -947,7 +947,7 @@
         "cooldownModifier": 0.35,
         "damageBase": 99.0,
         "numDie": 1.0,
-        "sidesPerDie": 1.0,
+        "sidesPerDie": 21.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
         "multiTargets": 1.0,
@@ -1693,7 +1693,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 2.0,
           "duration": 3.0,
           "slow": 0.15
         }
@@ -1718,7 +1718,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 3.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 2.0,
         "poisonSlowModifier": 0.15,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -1790,7 +1790,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 3.0,
           "duration": 4.0,
           "slow": 0.2
         }
@@ -1815,7 +1815,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 4.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 3.0,
         "poisonSlowModifier": 0.2,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -1887,7 +1887,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 5.0,
           "duration": 5.0,
           "slow": 0.25
         }
@@ -1912,7 +1912,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 5.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 5.0,
         "poisonSlowModifier": 0.25,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -1984,7 +1984,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 8.0,
           "duration": 6.0,
           "slow": 0.35
         }
@@ -2009,7 +2009,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 6.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 8.0,
         "poisonSlowModifier": 0.35,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -2081,7 +2081,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 16.0,
           "duration": 8.0,
           "slow": 0.5
         }
@@ -2106,7 +2106,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 8.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 16.0,
         "poisonSlowModifier": 0.5,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -2178,7 +2178,7 @@
       "modifiers": [
         {
           "type": "poison",
-          "damage_per_second": 0.0,
+          "damage_per_second": 25.0,
           "duration": 20.0,
           "slow": 0.75
         }
@@ -2203,7 +2203,7 @@
         "critChance": 0.0,
         "critMultiplier": 2.0,
         "poisonDuration": 20.0,
-        "poisonDamage": 0.0,
+        "poisonDamage": 25.0,
         "poisonSlowModifier": 0.75,
         "bonusAura": false,
         "speedAuraOpalValue": 0.0,
@@ -2276,7 +2276,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.1,
-          "radius": 0.0,
+          "radius": 330.7692307692308,
           "channel": "haste"
         }
       ],
@@ -2304,7 +2304,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.1,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 86.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2373,7 +2373,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.15,
-          "radius": 0.0,
+          "radius": 384.61538461538464,
           "channel": "haste"
         }
       ],
@@ -2401,7 +2401,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.15,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 100.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2470,7 +2470,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.2,
-          "radius": 0.0,
+          "radius": 442.3076923076923,
           "channel": "haste"
         }
       ],
@@ -2498,7 +2498,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.2,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 115.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2567,7 +2567,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.25,
-          "radius": 0.0,
+          "radius": 496.1538461538462,
           "channel": "haste"
         }
       ],
@@ -2595,7 +2595,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.25,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 129.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2664,7 +2664,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.35,
-          "radius": 0.0,
+          "radius": 550.0,
           "channel": "haste"
         }
       ],
@@ -2692,7 +2692,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.35,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 143.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2761,7 +2761,7 @@
         {
           "type": "attack_speed_aura",
           "fraction": 0.5,
-          "radius": 0.0,
+          "radius": 823.0769230769231,
           "channel": "haste"
         }
       ],
@@ -2789,7 +2789,7 @@
         "poisonSlowModifier": 0.0,
         "bonusAura": true,
         "speedAuraOpalValue": 0.5,
-        "speedAuraOpalRange": 0.0,
+        "speedAuraOpalRange": 214.0,
         "speedAuraBoostValue": 0.0,
         "speedAuraBoostRange": 0.0,
         "speedAuraVitalityValue": 0.0,
@@ -2857,8 +2857,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 96.15384615384616,
+          "source_radius": 25.0
         }
       ],
       "upgrade_cost": 0,
@@ -2895,7 +2895,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 25.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -2953,8 +2953,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 96.15384615384616,
+          "source_radius": 25.0
         }
       ],
       "upgrade_cost": 0,
@@ -2991,7 +2991,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 25.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -3049,8 +3049,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 115.38461538461539,
+          "source_radius": 30.0
         }
       ],
       "upgrade_cost": 0,
@@ -3087,7 +3087,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 30.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -3145,8 +3145,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 115.38461538461539,
+          "source_radius": 30.0
         }
       ],
       "upgrade_cost": 0,
@@ -3183,7 +3183,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 30.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -3241,8 +3241,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 115.38461538461539,
+          "source_radius": 30.0
         }
       ],
       "upgrade_cost": 0,
@@ -3279,7 +3279,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 30.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -3337,8 +3337,8 @@
       "modifiers": [
         {
           "type": "splash",
-          "radius": 0.0,
-          "source_radius": 0.0
+          "radius": 134.6153846153846,
+          "source_radius": 35.0
         }
       ],
       "upgrade_cost": 0,
@@ -3375,7 +3375,7 @@
         "damageAuraYellowSapphireModifier": 0.0,
         "aoe": true,
         "aoeFreeze": false,
-        "aoeRange": 0.0,
+        "aoeRange": 35.0,
         "armorPenalty": false,
         "armorPenaltyValue": 0.0,
         "armorPenaltyDuration": 0.0,
@@ -3430,7 +3430,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3476,7 +3482,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3520,7 +3526,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3566,7 +3578,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3610,7 +3622,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3656,7 +3674,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3700,7 +3718,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3746,7 +3770,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3790,7 +3814,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3836,7 +3866,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3880,7 +3910,13 @@
         "attacks_ground": true,
         "attacks_air": true
       },
-      "modifiers": [],
+      "modifiers": [
+        {
+          "type": "slow",
+          "fraction": 0.2,
+          "duration": 2
+        }
+      ],
       "upgrade_cost": 0,
       "upgrades_to": "",
       "classic_properties": {
@@ -3926,7 +3962,7 @@
         "groundingIntervalMs": 0.0,
         "groundingCooldownMs": 0.0,
         "miasmaHitCounter": 0.0,
-        "iceSlow": false,
+        "iceSlow": true,
         "iceSlowModifier": 0.2,
         "proxAuraFlying": false,
         "proxAuraArmorPenalty": 0.0,
@@ -3966,7 +4002,7 @@
         "source_range": 71.5,
         "attack_interval": 0.8,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 3,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -3986,7 +4022,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 3.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4056,7 +4092,7 @@
         "source_range": 71.5,
         "attack_interval": 1.0,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 3,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -4076,7 +4112,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 3.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4146,7 +4182,7 @@
         "source_range": 71.5,
         "attack_interval": 1.0,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 4,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -4166,7 +4202,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 4.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4236,7 +4272,7 @@
         "source_range": 71.5,
         "attack_interval": 1.0,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 4,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -4256,7 +4292,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 4.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4326,7 +4362,7 @@
         "source_range": 85.8,
         "attack_interval": 1.0,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 5,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -4346,7 +4382,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 5.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4416,7 +4452,7 @@
         "source_range": 100.1,
         "attack_interval": 1.0,
         "projectile_speed": 1730.7692307692307,
-        "targets": 1,
+        "targets": 7,
         "attacks_ground": true,
         "attacks_air": true
       },
@@ -4436,7 +4472,7 @@
         "sidesPerDie": 1.0,
         "attackRange": 0.0,
         "projectileSpeed": 500.0,
-        "multiTargets": 1.0,
+        "multiTargets": 7.0,
         "damageBurn": false,
         "critChance": 0.0,
         "critMultiplier": 2.0,
@@ -4824,8 +4860,9 @@
         {
           "type": "flame_strike",
           "damage_per_second": 100.0,
-          "radius": 0.0,
-          "duration": 10000.0,
+          "radius": 38.46153846153846,
+          "duration": 10.0,
+          "source_duration_ms": 10000.0,
           "chance": 0.1
         }
       ],
@@ -4890,7 +4927,7 @@
         "frostnovaDamage": 0.0,
         "frostnovaAoeRange": 0.0,
         "flamestrikeDamage": 100.0,
-        "flamestrikeAoeRange": 0.0,
+        "flamestrikeAoeRange": 10,
         "flamestrikeDuration": 10000.0,
         "bonusGoldChance": 0.0,
         "damageAuraValue": 0.0,
@@ -6952,7 +6989,9 @@
       "modifiers": [
         {
           "type": "burn",
-          "damage_per_second": 40
+          "damage_per_second": 44.0,
+          "delivery": "instant",
+          "derived_from_attack_stats": true
         }
       ],
       "upgrade_cost": 30,
@@ -7049,7 +7088,9 @@
       "modifiers": [
         {
           "type": "burn",
-          "damage_per_second": 50
+          "damage_per_second": 52.0,
+          "delivery": "instant",
+          "derived_from_attack_stats": true
         }
       ],
       "upgrade_cost": 290,
@@ -7146,7 +7187,9 @@
       "modifiers": [
         {
           "type": "burn",
-          "damage_per_second": 100
+          "damage_per_second": 130.0,
+          "delivery": "instant",
+          "derived_from_attack_stats": true
         }
       ],
       "upgrade_cost": 0,
@@ -7248,7 +7291,9 @@
         },
         {
           "type": "burn",
-          "damage_per_second": 0
+          "damage_per_second": 192.0,
+          "delivery": "instant",
+          "derived_from_attack_stats": true
         }
       ],
       "upgrade_cost": 190,
@@ -7350,7 +7395,9 @@
         },
         {
           "type": "burn",
-          "damage_per_second": 0
+          "damage_per_second": 260.0,
+          "delivery": "instant",
+          "derived_from_attack_stats": true
         }
       ],
       "upgrade_cost": 0,

@@ -7,3 +7,5 @@ DerivedDataCache/
 *.blend1
 *.log
 *.dmp
+__pycache__/
+*.pyc

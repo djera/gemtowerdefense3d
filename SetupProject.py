@@ -1,7 +1,8 @@
 """Run once through UnrealEditor-Cmd with -run=pythonscript -script=..."""
-import unreal, runpy
+import unreal, runpy, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT/'Tools'))
 tools=unreal.AssetToolsHelpers.get_asset_tools()
 edit=unreal.MaterialEditingLibrary
 colors={'Snow':(.72,.82,.88),'Grass':(.11,.28,.13),'Road':(.24,.27,.29),'Intersection':(.17,.19,.21),'Checkpoint':(.8,.42,.025),'Stone':(.16,.19,.22),'Enemy':(.7,.12,.07),'Path':(.06,.5,.55),'Valid':(.08,.85,.51),'Invalid':(.95,.08,.12)}
@@ -27,12 +28,12 @@ for name,rgb in colors.items():
     edit.recompile_material(mat); unreal.EditorAssetLibrary.save_loaded_asset(mat)
 if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Gems/Meshes/SM_Topaz_Perfect'):
     runpy.run_path(str(ROOT/'assets/gems/Unreal/import_gems.py'),run_name='__main__')
-if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Prototype/Meshes/SM_MazeStone'):
+if (ROOT/'assets/stone/SM_MazeStone.fbx').exists():
     task=unreal.AssetImportTask()
     task.filename=str(ROOT/'assets/stone/SM_MazeStone.fbx')
     task.destination_path='/Game/Prototype/Meshes'
     task.destination_name='SM_MazeStone'
-    task.automated=True; task.save=True
+    task.automated=True; task.save=True; task.replace_existing=True
     options=unreal.FbxImportUI()
     options.import_mesh=True; options.import_as_skeletal=False
     options.import_materials=False; options.import_textures=False
@@ -44,6 +45,8 @@ if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Prototype/Meshes/SM_Maz
 stone=unreal.load_asset('/Game/Prototype/Meshes/SM_MazeStone')
 stone.set_material(0,unreal.load_asset('/Game/Prototype/Materials/M_Stone'))
 unreal.EditorAssetLibrary.save_loaded_asset(stone)
+runpy.run_path(str(ROOT/'Tools/CreateCelMaterials.py'),run_name='__main__')
+runpy.run_path(str(ROOT/'Tools/CreateTerrainMaterial.py'),run_name='__main__')
 level=unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 if unreal.EditorAssetLibrary.does_asset_exist('/Game/Maps/Prototype'):
     level.load_level('/Game/Maps/Prototype')

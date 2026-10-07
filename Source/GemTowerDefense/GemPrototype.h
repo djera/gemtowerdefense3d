@@ -28,6 +28,7 @@ struct FGemEnemy
 {
     GENERATED_BODY()
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Mesh;
+    UPROPERTY() TObjectPtr<class UStaticMeshComponent> Outline;
     float Health = 0;
     float MaxHealth = 0;
     int32 RouteIndex = 1;
@@ -144,11 +145,15 @@ private:
     UPROPERTY() TArray<TObjectPtr<class UInstancedStaticMeshComponent>> Terrain;
     UPROPERTY() TObjectPtr<class UInstancedStaticMeshComponent> CheckpointMarkers;
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Ghost;
+    UPROPERTY() TObjectPtr<class UStaticMeshComponent> Backdrop;
     UPROPERTY() TArray<TObjectPtr<class UStaticMesh>> GemModels;
     UPROPERTY() TObjectPtr<class UMaterialInterface> ValidMaterial;
     UPROPERTY() TObjectPtr<class UMaterialInterface> InvalidMaterial;
     UPROPERTY() TArray<TObjectPtr<class UStaticMeshComponent>> Placed;
+    UPROPERTY() TArray<TObjectPtr<class UStaticMeshComponent>> Outlines;
     UPROPERTY() TObjectPtr<class UInstancedStaticMeshComponent> RouteMarkers;
+    UPROPERTY(Transient) TObjectPtr<class UTexture2D> TerrainBlendMask;
+    UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> TerrainBlendInstance;
     TArray<FVector> Route;
     TArray<FVector> AirRoute;
     TArray<FWaveDefinition> Waves;
@@ -167,10 +172,12 @@ private:
     void MakeRock(int32 Index);
     void StartWave();
     void ApplyPieceVisual(int32 Index);
+    class UStaticMeshComponent* CreateOutline(class UStaticMeshComponent* Mesh);
     TArray<int32> FindRecipePieces(int32 Recipe) const;
     void EndCombat();
     TArray<FIntPoint> Occupied;
     void BuildLandscape();
+    void ApplyTerrainBlend();
     void ClearGems();
     void ApplyGemSize(class UStaticMeshComponent* Mesh) const;
 };
@@ -202,6 +209,7 @@ public:
     FVector2D PreviousMouse = FVector2D::ZeroVector;
     FIntPoint Hover;
     static float SidebarWidth(int32 Width) { return FMath::Clamp(Width*.24f,290.f,360.f); }
+    static float UIScale(int32 Width,int32 Height) { return FMath::Max(.25f,FMath::Min(1.5f,FMath::Min(Width/1200.f,Height/900.f))); }
 };
 
 UCLASS()

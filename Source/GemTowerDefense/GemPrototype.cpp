@@ -7,6 +7,8 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
 #include "InputCoreTypes.h"
 #include "TimerManager.h"
@@ -66,6 +68,12 @@ AGemBoard::AGemBoard()
     Ghost->SetupAttachment(RootComponent);
     Ghost->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Ghost->SetCastShadow(false);
+    Backdrop=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Backdrop"));
+    Backdrop->SetupAttachment(RootComponent);
+    ConstructorHelpers::FObjectFinder<UStaticMesh> Plane(TEXT("/Engine/BasicShapes/Plane.Plane"));
+    Backdrop->SetStaticMesh(Plane.Object); Backdrop->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    Backdrop->SetRelativeLocation(FVector(0,0,-10)); Backdrop->SetRelativeScale3D(FVector(160,160,1));
+    Backdrop->SetCastShadow(false);
     ConstructorHelpers::FObjectFinder<UMaterialInterface> Good(TEXT("/Game/Prototype/Materials/M_Valid.M_Valid"));
     ConstructorHelpers::FObjectFinder<UMaterialInterface> Bad(TEXT("/Game/Prototype/Materials/M_Invalid.M_Invalid"));
     ValidMaterial=Good.Object; InvalidMaterial=Bad.Object;
@@ -99,6 +107,7 @@ void AGemBoard::PostLoad()
     GemModels.Reset();
     for (const TCHAR* Name:GemNames) for (const TCHAR* Quality:QualityNames)
         GemModels.Add(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Game/Gems/Meshes/SM_%s_%s.SM_%s_%s"),Name,Quality,Name,Quality)));
+    ApplyTerrainBlend();
 }
 void AGemBoard::BeginPlay() { Super::BeginPlay(); BuildLandscape(); ResetRun(); Ghost->SetVisibility(false); }
 void AGemBoard::CalcCamera(float DeltaTime,FMinimalViewInfo& OutResult)
@@ -119,8 +128,11 @@ void AGemBoard::BuildLandscape()
     LoadDefinitions();
     const TCHAR* Names[]={TEXT("Snow"),TEXT("Grass"),TEXT("Road"),TEXT("Intersection"),TEXT("Road"),TEXT("Road"),TEXT("Road")};
     for (int32 I=0;I<Terrain.Num();++I)
-        Terrain[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Prototype/Materials/M_%s.M_%s"),Names[I],Names[I])));
-    CheckpointMarkers->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Checkpoint.M_Checkpoint")));
+        Terrain[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Prototype/Materials/M_Cel_%s.M_Cel_%s"),Names[I],Names[I])));
+    CheckpointMarkers->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Checkpoint.M_Cel_Checkpoint")));
+    Backdrop->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Backdrop.M_Cel_Backdrop")));
+    ValidMaterial=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Valid.M_Cel_Valid"));
+    InvalidMaterial=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Invalid.M_Cel_Invalid"));
     for (const auto& Layer:Terrain) Layer->ClearInstances();
     CheckpointMarkers->ClearInstances();
     Tiles.Reset();
@@ -179,11 +191,34 @@ void AGemBoard::BuildLandscape()
         }
         if (IsCheckpoint(Rows[Y][X])) Type=EGroundType::Checkpoint;
         FGroundTile Tile; Tile.Cell=FIntPoint(X,Y); Tile.Type=Type; Tiles.Add(Tile);
-        Terrain[static_cast<int32>(Type)]->AddInstance(FTransform(FRotator::ZeroRotator,FVector((X-9.5f)*CellSize,(Y-9.5f)*CellSize,0),FVector(.975f,.975f,.16f)));
+        const float TileScale=(Type==EGroundType::Snow || Type==EGroundType::Grass)?1.f:.975f;
+        Terrain[static_cast<int32>(Type)]->AddInstance(FTransform(FRotator::ZeroRotator,FVector((X-9.5f)*CellSize,(Y-9.5f)*CellSize,0),FVector(TileScale,TileScale,.16f)));
         if (Type==EGroundType::Checkpoint)
             CheckpointMarkers->AddInstance(FTransform(FRotator::ZeroRotator,FVector((X-9.5f)*CellSize,(Y-9.5f)*CellSize,9.5f),FVector(.48f,.48f,.025f)));
     }
-    RebuildRoute();
+    ApplyTerrainBlend(); RebuildRoute();
+}
+void AGemBoard::ApplyTerrainBlend()
+{
+    if (Tiles.Num()!=GridSize*GridSize) return;
+    auto* Base=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_TerrainBlendPastel.M_TerrainBlendPastel"));
+    if (!Base) return;
+    TerrainBlendMask=UTexture2D::CreateTransient(GridSize,GridSize,PF_B8G8R8A8);
+    TerrainBlendMask->SRGB=false; TerrainBlendMask->Filter=TF_Bilinear;
+    TerrainBlendMask->AddressX=TA_Clamp; TerrainBlendMask->AddressY=TA_Clamp;
+    FColor* Pixels=static_cast<FColor*>(TerrainBlendMask->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
+    for (int32 I=0;I<Tiles.Num();++I)
+    {
+        const bool Snow=Tiles[I].Type==EGroundType::Snow,Grass=Tiles[I].Type==EGroundType::Grass;
+        // Red carries snow weight; green carries S occupancy. Dividing the
+        // filtered channels excludes road/waypoint texels from the blend.
+        Pixels[I]=FColor(Snow?255:0,(Snow||Grass)?255:0,0,255);
+    }
+    TerrainBlendMask->GetPlatformData()->Mips[0].BulkData.Unlock();
+    TerrainBlendMask->UpdateResource();
+    TerrainBlendInstance=UMaterialInstanceDynamic::Create(Base,this);
+    TerrainBlendInstance->SetTextureParameterValue(TEXT("TerrainMask"),TerrainBlendMask);
+    Terrain[0]->SetMaterial(0,TerrainBlendInstance); Terrain[1]->SetMaterial(0,TerrainBlendInstance);
 }
 FIntPoint AGemBoard::Snap(FVector World) const
 {
@@ -222,7 +257,7 @@ void AGemBoard::Place(FIntPoint P,int32 Type,int32 Quality)
     Mesh->SetupAttachment(RootComponent); Mesh->SetStaticMesh(GemModels[Model]);
     Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); Mesh->RegisterComponent();
     Mesh->SetWorldLocation(PlacementPosition(P)); ApplyGemSize(Mesh);
-    Occupied.Add(P); Placed.Add(Mesh);
+    Occupied.Add(P); Placed.Add(Mesh); Outlines.Add(CreateOutline(Mesh));
     FGemPiece Piece; Piece.Type=Type; Piece.Quality=Quality;
     Pieces.Add(Piece); AttackCooldown.Add(0); ++OffersPlaced;
     Selected=Pieces.Num()-1;
@@ -234,11 +269,13 @@ void AGemBoard::Remove(FIntPoint P)
 {
     for (int32 I=Occupied.Num()-1;I>=0;--I)
         if (FMath::Abs(P.X-Occupied[I].X)<=1 && FMath::Abs(P.Y-Occupied[I].Y)<=1)
-        { Placed[I]->DestroyComponent(); Placed.RemoveAt(I); Occupied.RemoveAt(I); Pieces.RemoveAt(I); AttackCooldown.RemoveAt(I); Selected=INDEX_NONE; RebuildRoute(); return; }
+        { if (Outlines.IsValidIndex(I)) { Outlines[I]->DestroyComponent(); Outlines.RemoveAt(I); } Placed[I]->DestroyComponent(); Placed.RemoveAt(I); Occupied.RemoveAt(I); Pieces.RemoveAt(I); AttackCooldown.RemoveAt(I); Selected=INDEX_NONE; RebuildRoute(); return; }
 }
 void AGemBoard::ClearGems()
 {
     for (const auto& Mesh:Placed) Mesh->DestroyComponent();
+    for (const auto& Mesh:Outlines) Mesh->DestroyComponent();
+    Outlines.Reset();
     Placed.Reset(); Occupied.Reset();
     Pieces.Reset(); AttackCooldown.Reset(); Selected=INDEX_NONE; SelectedEnemy=INDEX_NONE;
 }
@@ -422,6 +459,7 @@ void AGemController::BeginPlay()
         Check(Board->GemCount()==5,TEXT("A sixth offer cannot be placed"));
         Board->SelectAt(FIntPoint(8,14));
         Check(Board->CanKeepSelected(),TEXT("Selecting an offered gem enables Place"));
+        Check(Board->SelectRay(Board->PlacementPosition(FIntPoint(8,14))+FVector(0,0,1000),FVector(0,0,-1)) && Board->Selected==0,TEXT("Click-ray selection hits gem geometry"));
         Check(Board->ClearAllGems() && Board->GemCount()==0 && Board->OffersPlaced==0 && Board->Phase==ERoundPhase::Placing,TEXT("Clear Gems restarts placement"));
         OfferFive(); Board->SelectAt(FIntPoint(8,14));
         Check(Board->KeepSelected(),TEXT("Place starts the wave"));
@@ -433,6 +471,7 @@ void AGemController::BeginPlay()
         Check(Board->Enemies.Num()==1 && FVector::Dist2D(Board->Enemies[0].Mesh->GetComponentLocation(),Board->PlacementPosition(Board->EntryCell*2))<1,TEXT("Enemies spawn at the E tile"));
         Board->SelectEnemy(0);
         Check(Board->Selected==INDEX_NONE && Board->SelectedEnemy==0 && Board->SelectedInfo().Num()>=7,TEXT("Enemy selection exposes its live stats"));
+        if (!Board->Enemies.IsEmpty()) Check(Board->SelectRay(Board->Enemies[0].Mesh->GetComponentLocation()+FVector(0,0,1000),FVector(0,0,-1)) && Board->SelectedEnemy==0,TEXT("Click-ray selection hits enemies"));
         if (!Board->Enemies.IsEmpty()) Board->Enemies[0].RouteIndex=100000;
         Board->Tick(.001f);
         Check(Board->Lives==19 && Board->SelectedEnemy==INDEX_NONE,TEXT("An escaping enemy removes one life and clears its selection"));
@@ -468,9 +507,11 @@ void AGemController::PlayerTick(float DeltaTime)
     if (!Board) return;
     if (GetViewTarget()!=Board) SetViewTarget(Board);
     int32 W,H; GetViewportSize(W,H); if (W<=0 || H<=0) return;
+    const float Scale=UIScale(W,H); W=FMath::RoundToInt(W/Scale); H=FMath::RoundToInt(H/Scale);
     const float Side=SidebarWidth(W),Header=64.f;
     float X=0,Y=0; const bool HasMouse=GetMousePosition(X,Y);
-    const bool InBoard=HasMouse && X<W-Side && Y>Header && Y<H-100;
+    X/=Scale; Y/=Scale;
+    const bool InBoard=HasMouse && X<W-Side && Y>Header && Y<H-118;
     const bool RightHeld=IsInputKeyDown(EKeys::RightMouseButton),MiddleHeld=IsInputKeyDown(EKeys::MiddleMouseButton);
     if (InBoard && (WasInputKeyJustPressed(EKeys::RightMouseButton) || WasInputKeyJustPressed(EKeys::MiddleMouseButton))) bCameraDragging=true;
     if (!RightHeld && !MiddleHeld) bCameraDragging=false;
@@ -530,7 +571,7 @@ void AGemController::PlayerTick(float DeltaTime)
     if (InBoard && !bCameraDragging && !bRecipesOpen)
     {
         FVector Origin,Direction;
-        if (DeprojectScreenPositionToWorld(X,Y,Origin,Direction) && FMath::Abs(Direction.Z)>.001f)
+        if (DeprojectScreenPositionToWorld(X*Scale,Y*Scale,Origin,Direction) && FMath::Abs(Direction.Z)>.001f)
         {
             const float T=(10.f-Origin.Z)/Direction.Z;
             Hover=Board->Snap(Origin+Direction*T);
@@ -560,12 +601,16 @@ void AGemHUD::DrawHUD()
 {
     Super::DrawHUD();
     auto* PC=Cast<AGemController>(GetOwningPlayerController()); if (!Canvas || !PC) return;
-    const float W=Canvas->SizeX,H=Canvas->SizeY,Side=AGemController::SidebarWidth(W),Left=W-Side;
+    const float Scale=AGemController::UIScale(Canvas->SizeX,Canvas->SizeY);
+    const float W=Canvas->SizeX/Scale,H=Canvas->SizeY/Scale,Side=AGemController::SidebarWidth(W),Left=W-Side;
     const FLinearColor Ink(.80f,.86f,.93f),Muted(.42f,.52f,.63f),Accent(.27f,.85f,.73f);
+    auto DrawRect=[&](FLinearColor Color,float X,float Y,float Width,float Height) { AHUD::DrawRect(Color,X*Scale,Y*Scale,Width*Scale,Height*Scale); };
+    auto ReadMouse=[&](float& X,float& Y) { const bool Valid=PC->GetMousePosition(X,Y); X/=Scale; Y/=Scale; return Valid; };
+    auto Project=[&](FVector World,FVector2D& Screen) { const bool Valid=PC->ProjectWorldLocationToScreen(World,Screen); Screen/=Scale; return Valid; };
     DrawRect(FLinearColor(.018f,.027f,.045f),0,0,W,64);
     DrawRect(FLinearColor(.025f,.038f,.060f),Left,64,Side,H-64);
     DrawRect(FLinearColor(.12f,.21f,.27f),Left,64,1,H-64);
-    auto Label=[&](FString S,float X,float Y,FLinearColor Color,float Scale=1.f) { DrawText(S,Color,X,Y,GEngine->GetMediumFont(),Scale); };
+    auto Label=[&](FString S,float X,float Y,FLinearColor Color,float TextScale=1.f) { DrawText(S,Color,X*Scale,Y*Scale,GEngine->GetMediumFont(),TextScale*Scale); };
     Label(TEXT("GEM / TOWER DEFENSE"),24,21,Accent,1.1f);
     Label(FString(TEXT("GOLD  "))+FText::AsNumber(PC->Gold).ToString(),W*.20f,23,FLinearColor(1,.76f,.28f),.9f);
     if (PC->Board) Label(FString::Printf(TEXT("SCORE  %d   |   WAVE  %d   |   LIVES  %d"),PC->Board->Score,PC->Board->Wave,PC->Board->Lives),W*.43f,23,Ink,.85f);
@@ -600,7 +645,7 @@ void AGemHUD::DrawHUD()
         Label(TEXT("I  Intersection   1-6  Checkpoint order"),Left+24,439,Ink,.72f);
         Label(TEXT("E  Entry     X  Exit  /  road tiles"),Left+24,405,Ink,.75f);
     }
-    float MouseX,MouseY; const bool Hot=PC->GetMousePosition(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=458 && MouseY<=500;
+    float MouseX,MouseY; const bool Hot=ReadMouse(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=458 && MouseY<=500;
     DrawRect(Hot?FLinearColor(.12f,.38f,.35f):FLinearColor(.07f,.25f,.24f),Left+24,458,Side-48,42);
     Label(TEXT("REGENERATE  /  6 CHECKPOINTS"),Left+36,471,Accent,.8f);
     Label(TEXT("R  Regenerate     D  Restore default"),Left+24,515,Muted,.75f);
@@ -610,11 +655,11 @@ void AGemHUD::DrawHUD()
         Label(QualityNames[Q],Left+24,584+Q*20,Ink,.85f);
         Label(FString::Printf(TEXT("%d%%"),PC->QualityChance(Q)),W-72,584+Q*20,PC->QualityChance(Q)>0?Accent:Muted,.85f);
     }
-    const bool UpgradeHot=PC->GetMousePosition(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=700 && MouseY<=742;
+    const bool UpgradeHot=ReadMouse(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=700 && MouseY<=742;
     DrawRect(PC->ChanceLevel>=8?FLinearColor(.08f,.10f,.12f):UpgradeHot?FLinearColor(.38f,.30f,.12f):FLinearColor(.25f,.20f,.08f),Left+24,700,Side-48,42);
     Label(PC->ChanceLevel>=8?TEXT("MAXIMUM CHANCE LEVEL"):FString::Printf(TEXT("UPGRADE / %d GOLD"),PC->UpgradeCost()),Left+36,714,FLinearColor(1,.76f,.28f),.85f);
     Label(TEXT("U  Upgrade    |    Random gem type"),Left+24,754,Muted,.75f);
-    const bool ResetHot=PC->GetMousePosition(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=782 && MouseY<=820;
+    const bool ResetHot=ReadMouse(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=782 && MouseY<=820;
     DrawRect(ResetHot?FLinearColor(.12f,.30f,.4f):FLinearColor(.07f,.17f,.25f),Left+24,782,Side-48,38);
     Label(TEXT("RESET CAMERA / HOME"),Left+36,793,Accent,.85f);
     Label(TEXT("Right drag: rotate   Middle drag: pan"),Left+24,836,Muted,.75f);
@@ -630,11 +675,11 @@ void AGemHUD::DrawHUD()
             case ERoundPhase::Victory: Phase=TEXT("VICTORY / All waves cleared. D starts a new run."); break;
             case ERoundPhase::Defeat: Phase=TEXT("DEFEAT / No lives remaining. D starts a new run."); break;
         }
-        Label(Phase,24,80,Accent,.95f);
+        Label(Phase,24,80,FLinearColor(.10f,.18f,.25f),.95f);
         for (int32 I=0;I<2;++I)
         {
             FVector2D Screen;
-            if (PC->ProjectWorldLocationToScreen(Board->PlacementPosition((I==0?Board->EntryCell:Board->ExitCell)*2)+FVector(0,0,30),Screen)
+            if (Project(Board->PlacementPosition((I==0?Board->EntryCell:Board->ExitCell)*2)+FVector(0,0,30),Screen)
                 && Screen.X>14 && Screen.X<Left-20 && Screen.Y>115 && Screen.Y<H-130)
             {
                 DrawRect(FLinearColor(.02f,.035f,.05f,.9f),Screen.X-10,Screen.Y-10,22,22);
@@ -644,14 +689,14 @@ void AGemHUD::DrawHUD()
         for (int32 I=0;I<Board->CheckpointOrder.Num();++I)
         {
             FVector2D Screen;
-            if (PC->ProjectWorldLocationToScreen(Board->PlacementPosition(Board->CheckpointOrder[I]*2)+FVector(0,0,16),Screen)
+            if (Project(Board->PlacementPosition(Board->CheckpointOrder[I]*2)+FVector(0,0,16),Screen)
                 && Screen.X>14 && Screen.X<Left-20 && Screen.Y>115 && Screen.Y<H-130)
                 Label(FString::FromInt(I+1),Screen.X-4,Screen.Y-7,FLinearColor(.05f,.045f,.02f),.8f);
         }
         for (const auto& Enemy:Board->Enemies)
         {
             FVector2D Screen;
-            if (Enemy.Mesh && PC->ProjectWorldLocationToScreen(Enemy.Mesh->GetComponentLocation()+FVector(0,0,26),Screen)
+            if (Enemy.Mesh && Project(Enemy.Mesh->GetComponentLocation()+FVector(0,0,26),Screen)
                 && Screen.X>20 && Screen.X<Left-20 && Screen.Y>110 && Screen.Y<H-120)
             {
                 DrawRect(FLinearColor(.12f,.03f,.03f),Screen.X-14,Screen.Y,28,3);
@@ -667,7 +712,7 @@ void AGemHUD::DrawHUD()
         for (int32 I=0;I<7;++I)
         {
             const float BX=24+I*(ButtonWidth+8);
-            const bool HotAction=PC->GetMousePosition(MouseX,MouseY) && MouseX>=BX && MouseX<=BX+ButtonWidth && MouseY>=H-80 && MouseY<=H-44;
+            const bool HotAction=ReadMouse(MouseX,MouseY) && MouseX>=BX && MouseX<=BX+ButtonWidth && MouseY>=H-80 && MouseY<=H-44;
             DrawRect(!Enabled[I]?FLinearColor(.04f,.065f,.085f):HotAction?FLinearColor(.12f,.30f,.35f):FLinearColor(.06f,.20f,.23f),BX,H-80,ButtonWidth,36);
             Label(Actions[I],BX+9,H-68,Enabled[I]?Accent:Muted,.7f);
         }
