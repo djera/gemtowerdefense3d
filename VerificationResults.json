@@ -32,6 +32,6 @@
     "Restore default recovers supplied array",
     "Camera rotates and clamps pitch above the board",
     "Camera pans horizontally without changing altitude",
-    "Camera reset restores the initial view"
+    "Camera reset restores the initial view rotated clockwise 90 degrees"
   ]
 }

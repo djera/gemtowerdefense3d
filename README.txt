@@ -59,7 +59,23 @@ VerifyRoadOrder.py independently checks shortest legs, complete coverage, partia
 obstruction, stone conversion, stable indices and rejection of enclosed targets.
 
 Right drag rotates the camera; middle drag pans. RESET CAMERA / Home
-restores its original angle and position. HUD scales to smaller windows.
+restores the starting angle (now rotated 90 degrees clockwise, yaw +45)
+and position. HUD scales to smaller windows.
+The top SPEED slider runs combat from 1X to 100X, with camera/UI at normal
+speed. Combat advances in steps no larger than 1/60 second so waves,
+movement, projectiles, cooldowns and modifiers speed up together.
+Real-time frame stalls beyond 100 ms are capped to prevent runaway catch-up.
+Selected gems show a world-space attack range circle; rocks and enemies do not.
+GEMS / G opens the gem catalog: base grades (including Great) and special
+towers, a 1024px capture of the assigned 3D model, all editable stats,
+modifiers, armor multipliers, recipes and upgrades. Scroll over each pane;
+Up/Down selects a gem, Left/Right rotates its preview, Escape/G closes it.
+The catalog is read-only; waves continue while it is open. Definitions are
+read from Content/Data/Gems.json and Recipes.json, including after F5 reload.
+Routes use a 40x40 grid of 50 cm blocks. Gems block exactly 2x2 of these.
+One-block-wide passages are valid; consecutive route blocks must share an
+edge (no diagonal/corner connections). Each leg reaches the nearest 1x1
+quadrant of its next required road/checkpoint tile via a shortest path.
 Gold starts at one billion; U upgrades chance using the supplied table.
 2 / 4 merges matching gems one / two grades higher. T opens recipes.
 V upgrades a selected special tower; X removes a selected stone in build.
@@ -76,6 +92,8 @@ The previous JavaScript extractor is historical and should not be rerun.
 
 Art uses pastel base colors with three high-contrast lighting bands,
 near-black object outlines and ink borders around road/intersection cells.
+Object outlines expand a closed shell from vertex positions, keeping shared
+corners connected even though the visible mesh has flat facet normals.
 Snow/grass still blends softly only across S-S borders. Maze stones are
 dark angular boulders with a broad flat base, embedded slightly into the
 terrain, and sparse ink fracture marks.
@@ -83,6 +101,11 @@ assets/ArtPalette.json defines colors; assets/CelStyle.json controls band
 strengths, lighting thresholds, outline width (cm) and road border width
 (fraction of a tile). Run SetupProject.py to apply either file's changes.
 assets/stone contains the Blender source, FBX and generator for maze stones.
+Gems use opaque clear-coat materials with low roughness and daylight cubemap
+reflections; the cel color fill preserves their type colors. Rocks and terrain
+remain matte. assets/GemSurface.json controls polish, clear coat, color fill and
+environment intensity. Tools/CreateGemMaterials.py reapplies these settings to
+all eight gem materials and updates the saved level's GemReflectionSky.
 
 Cel colors, shade bands and outlines are procedural, so their sharpness is
 controlled by render resolution rather than a painted texture's resolution.
@@ -91,6 +114,17 @@ downsample, with FXAA and automatic/DPI resolution reductions disabled.
 For lower GPU cost, set r.ScreenPercentage in Config/DefaultEngine.ini and
 ManualScreenPercentage in Config/DefaultEditor.ini to 100. Restart the editor
 after changing these defaults. S-S terrain blending remains intentionally soft.
+
+Working with the editor open:
+- Source and JSON edits can be made while Unreal remains open. F5 reloads
+  definitions on an empty build board; D restores the editable map layout.
+- For material/palette/outline updates, stop Play, then use File > Execute
+  Python Script and choose Tools/RefreshArtInEditor.py. It updates the current
+  editor session without reopening the map; Save All keeps lighting edits.
+- For supported C++ changes, enable Live Coding in Editor Preferences and
+  compile with Ctrl+Alt+F11. Larger structural changes may need a full restart.
+- Do not run SetupProject.py in a second Unreal process while the project is
+  open. Full rebuilds and external mesh imports need coordinated editor access.
 
 Architecture: GemPrototype.h/.cpp contains the typed board, isometric
 controller, placement logic, HUD and game mode. GemGameplay.cpp contains
@@ -107,3 +141,5 @@ VerifyProject.py checks placement, numbered endpoints, 100 generated maps,
 terrain materials and camera state through Unreal Python. Launch with
 -GemSmokeTest to exercise route blocking, five-offer selection, stone
 conversion, clear, merges, and enemies, and capture gameplay previews.
+Launch with -GemCatalogSmokeTest to verify catalog entries, previews, input
+isolation and camera reset, and capture the catalog and range-circle views.

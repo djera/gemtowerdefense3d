@@ -6,18 +6,18 @@ namespace
 {
 const FIntPoint Directions[]={FIntPoint(1,0),FIntPoint(0,1),FIntPoint(-1,0),FIntPoint(0,-1)};
 bool Inside(FIntPoint P,int32 Size) { return P.X>=0 && P.Y>=0 && P.X<Size && P.Y<Size; }
-bool ShortestPath(FIntPoint Start,FIntPoint End,int32 Size,TFunctionRef<bool(FIntPoint)> Allowed,TArray<FIntPoint>& Result)
+bool ShortestPathTo(FIntPoint Start,int32 Size,TFunctionRef<bool(FIntPoint)> IsGoal,TFunctionRef<bool(FIntPoint)> Allowed,TArray<FIntPoint>& Result)
 {
     Result.Reset();
-    if(!Inside(Start,Size) || !Inside(End,Size) || !Allowed(Start) || !Allowed(End)) return false;
+    if(!Inside(Start,Size) || !Allowed(Start)) return false;
     TArray<int32> Previous; Previous.Init(-2,Size*Size);
     TArray<FIntPoint> Queue; Queue.Add(Start); Previous[Start.Y*Size+Start.X]=-1;
     for(int32 Head=0;Head<Queue.Num();++Head)
     {
         const FIntPoint P=Queue[Head];
-        if(P==End)
+        if(IsGoal(P))
         {
-            for(int32 N=End.Y*Size+End.X;N>=0;N=Previous[N]) Result.Add(FIntPoint(N%Size,N/Size));
+            for(int32 N=P.Y*Size+P.X;N>=0;N=Previous[N]) Result.Add(FIntPoint(N%Size,N/Size));
             Algo::Reverse(Result); return true;
         }
         for(const auto& D:Directions)
@@ -28,6 +28,10 @@ bool ShortestPath(FIntPoint Start,FIntPoint End,int32 Size,TFunctionRef<bool(FIn
         }
     }
     return false;
+}
+bool ShortestPath(FIntPoint Start,FIntPoint End,int32 Size,TFunctionRef<bool(FIntPoint)> Allowed,TArray<FIntPoint>& Result)
+{
+    return Inside(End,Size) && Allowed(End) && ShortestPathTo(Start,Size,[&](FIntPoint P){return P==End;},Allowed,Result);
 }
 }
 
@@ -118,7 +122,11 @@ int32 AGemBoard::EnemyRoadTarget(int32 I) const
     return Indices.IsValidIndex(Enemies[I].RouteIndex)?Indices[Enemies[I].RouteIndex]:0;
 }
 TArray<FIntPoint> AGemBoard::DebugRouteCells() const
-{ TArray<FIntPoint> Cells; for(const auto& P:Route) Cells.Add(Snap(P)); return Cells; }
+{
+    TArray<FIntPoint> Cells;
+    for(const auto& P:Route) Cells.Add(FIntPoint(FMath::RoundToInt((P.X+975.f)/50.f),FMath::RoundToInt((P.Y+975.f)/50.f)));
+    return Cells;
+}
 
 bool AGemBoard::FindRoute(TArray<FVector>& Result,const FIntPoint* ExtraBlock,TArray<int32>* RoadIndices) const
 {
@@ -131,24 +139,34 @@ bool AGemBoard::FindRoute(TArray<FVector>& Result,const FIntPoint* ExtraBlock,TA
         if(!Blocked) Goals.Add(T);
     }
     if(Goals.Num()<2 || Goals[0].Cell!=EntryCell || Goals.Last().Cell!=ExitCell) return false;
-    constexpr int32 HalfSize=GridSize*2-1;
+    // Actual centers of 40x40 half-cell blocks. Gems occupy exactly 2x2 blocks;
+    // cardinal Directions permits face-sharing connections, never corner cuts.
+    constexpr int32 HalfSize=GridSize*2;
     TBitArray<> Blocked(false,HalfSize*HalfSize);
     auto AddBlock=[&](FIntPoint P)
-    { for(int32 Y=P.Y-1;Y<=P.Y+1;++Y) for(int32 X=P.X-1;X<=P.X+1;++X) if(Inside(FIntPoint(X,Y),HalfSize)) Blocked[Y*HalfSize+X]=true; };
+    { for(int32 Y=P.Y;Y<P.Y+2;++Y) for(int32 X=P.X;X<P.X+2;++X) if(Inside(FIntPoint(X,Y),HalfSize)) Blocked[Y*HalfSize+X]=true; };
     for(const auto& P:Occupied) AddBlock(P);
     if(ExtraBlock) AddBlock(*ExtraBlock);
+    FIntPoint Current=EntryCell*2;
+    if(EntryCell.X==GridSize-1) ++Current.X;
+    if(EntryCell.Y==GridSize-1) ++Current.Y;
+    Result.Add(PlacementPosition(Current)+FVector(-25,-25,18));
+    if(RoadIndices) RoadIndices->Add(Goals[0].Index);
     for(int32 I=1;I<Goals.Num();++I)
     {
         TArray<FIntPoint> Leg;
-        if(!ShortestPath(Goals[I-1].Cell*2,Goals[I].Cell*2,HalfSize,[&](FIntPoint P){return !Blocked[P.Y*HalfSize+P.X];},Leg))
+        const FIntPoint Target=Goals[I].Cell*2;
+        auto InTarget=[&](FIntPoint P){return P.X>=Target.X && P.X<Target.X+2 && P.Y>=Target.Y && P.Y<Target.Y+2;};
+        if(!ShortestPathTo(Current,HalfSize,InTarget,[&](FIntPoint P){return !Blocked[P.Y*HalfSize+P.X];},Leg))
         { Result.Reset(); if(RoadIndices) RoadIndices->Reset(); return false; }
         for(const auto& P:Leg)
         {
-            const FVector Position=PlacementPosition(P)+FVector(0,0,18);
+            const FVector Position=PlacementPosition(P)+FVector(-25,-25,18);
             if(!Result.IsEmpty() && Result.Last().Equals(Position)) continue;
             if(RoadIndices) RoadIndices->Add(Result.IsEmpty()?Goals[0].Index:Goals[I].Index);
             Result.Add(Position);
         }
+        Current=Leg.Last();
     }
     return true;
 }
@@ -162,4 +180,30 @@ void AGemBoard::RebuildRoute()
     RouteMarkers->ClearInstances();
     RouteMarkers->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Prototype/Materials/M_Cel_Path.M_Cel_Path")));
     for(int32 I=0;I<Route.Num();I+=2) RouteMarkers->AddInstance(FTransform(FRotator::ZeroRotator,Route[I]-FVector(0,0,16),FVector(.07f)));
+}
+
+void AGemBoard::RunNavigationChecks(TFunctionRef<void(bool,const TCHAR*)> Check)
+{
+    ResetRun(); bool bPlaced=true;
+    auto Add=[&](FIntPoint Cell)
+    {
+        OffersPlaced=0; Phase=ERoundPhase::Placing;
+        bPlaced&=CanPlace(Cell); Place(Cell,0,0);
+    };
+    // A solid wall except for 50 cm openings at rows 18 and 39.
+    for(int32 Y=0;Y<18;Y+=2) Add(FIntPoint(14,Y));
+    for(int32 Y=19;Y<39;Y+=2) Add(FIntPoint(14,Y));
+    auto Cells=DebugRouteCells();
+    Check(bPlaced && HasValidRoute() && Cells.ContainsByPredicate([](FIntPoint P){return P.X==14 && (P.Y==18 || P.Y==39);}),TEXT("A one-block-wide passage connects the full checkpoint journey"));
+    Add(FIntPoint(12,18));
+    Check(bPlaced && HasValidRoute(),TEXT("The remaining one-block edge passage stays usable"));
+    Check(!CanPlace(FIntPoint(12,38)),TEXT("Corner-only contact across the remaining openings is not a route"));
+    Cells=DebugRouteCells(); bool bFaceConnected=true,bClear=true;
+    for(int32 I=0;I<Cells.Num();++I)
+    {
+        if(I>0) bFaceConnected&=FMath::Abs(Cells[I].X-Cells[I-1].X)+FMath::Abs(Cells[I].Y-Cells[I-1].Y)==1;
+        for(const auto& P:Occupied) bClear&=!(Cells[I].X>=P.X && Cells[I].X<P.X+2 && Cells[I].Y>=P.Y && Cells[I].Y<P.Y+2);
+    }
+    Check(bFaceConnected && bClear,TEXT("All route blocks share faces and stay outside every 2x2 gem footprint"));
+    ResetRun();
 }

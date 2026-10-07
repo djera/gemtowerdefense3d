@@ -16,14 +16,14 @@ def check(name,value):
     assert value,name
     checks.append(name)
 
-def shortest(start,end,blocks):
+def shortest(start,targets,blocks):
     queue=deque([(start,0)]); seen={start}
     while queue:
         (x,y),distance=queue.popleft()
-        if (x,y)==end: return distance
+        if (x,y) in targets: return distance
         for dx,dy in directions:
             q=(x+dx,y+dy)
-            if 0<=q[0]<39 and 0<=q[1]<39 and q not in blocks and q not in seen:
+            if 0<=q[0]<40 and 0<=q[1]<40 and q not in blocks and q not in seen:
                 seen.add(q); queue.append((q,distance+1))
     return None
 
@@ -36,16 +36,19 @@ def assert_route(placements=()):
     assert [t.checkpoint for t in order if t.checkpoint]>[]
     assert [t.checkpoint for t in order if t.checkpoint]==list(range(1,len(board.checkpoint_order)+1))
     assert xy(order[0].cell)==xy(board.entry_cell) and xy(order[-1].cell)==xy(board.exit_cell)
-    goals=[(t.cell.x*2,t.cell.y*2) for t in order if not t.excluded]
+    goals=[{(t.cell.x*2+dx,t.cell.y*2+dy) for dx in (0,1) for dy in (0,1)} for t in order if not t.excluded]
     route=[xy(c) for c in board.debug_route_cells()]
-    blocked={(x,y) for x in range(39) for y in range(39) if any(abs(x-bx)<2 and abs(y-by)<2 for bx,by in placements)}
+    blocked={(x,y) for x in range(40) for y in range(40) if any(bx<=x<bx+2 and by<=y<by+2 for bx,by in placements)}
     assert all(q not in blocked for q in route)
+    assert all(abs(a[0]-b[0])+abs(a[1]-b[1])==1 for a,b in zip(route,route[1:])), 'Route blocks must share a face, never just a corner'
     cursor=0
     for goal in goals:
-        cursor=route.index(goal,cursor)
-    assert route[0]==goals[0] and route[-1]==goals[-1]
-    expected_length=sum(shortest(a,b,blocked) for a,b in zip(goals,goals[1:]))
-    assert len(route)-1==expected_length,(len(route)-1,expected_length)
+        previous=cursor
+        expected_length=shortest(route[cursor],goal,blocked)
+        while cursor<len(route) and route[cursor] not in goal: cursor+=1
+        assert cursor<len(route),'Missing required tile'
+        assert cursor-previous==expected_length,(cursor-previous,expected_length)
+    assert route[0] in goals[0] and route[-1] in goals[-1] and cursor==len(route)-1
     assert board.required_road_count()==len(goals) and board.has_valid_route()
 
 try:
@@ -98,6 +101,7 @@ try:
     check('Covering a checkpoint is rejected',not board.can_place(p(6,4)))
     board.reset_run(); board.place(p(20,12),0,0)
     check('Edge-only contact does not exclude a neighboring road tile',not board.road_is_obstructed(p(9,6)))
+    board.reset_run()
     for trial in range(30):
         board.regenerate(); assert_route()
     check('30 generated maps enumerate all roads with ordered checkpoints and shortest route legs',True)

@@ -3,7 +3,7 @@
 
 void UGemCameraHandler::ResetView()
 {
-    Yaw=-45.f; Pitch=-35.264f; PanOffset=FVector::ZeroVector;
+    Yaw=DefaultYaw; Pitch=-35.264f; PanOffset=FVector::ZeroVector;
 }
 void UGemCameraHandler::Orbit(FVector2D MouseDelta)
 {

@@ -22,6 +22,10 @@ int32 AGemBoard::PieceAt(FIntPoint P) const
     for (int32 I=Occupied.Num()-1;I>=0;--I) if (FMath::Abs(P.X-Occupied[I].X)<=1 && FMath::Abs(P.Y-Occupied[I].Y)<=1) return I;
     return INDEX_NONE;
 }
+FVector AGemBoard::SelectedRangeCenter() const
+{
+    return Occupied.IsValidIndex(Selected)?PlacementPosition(Occupied[Selected])+FVector(0,0,2):FVector::ZeroVector;
+}
 void AGemBoard::SelectAt(FIntPoint P) { Selected=PieceAt(P); SelectedEnemy=INDEX_NONE; }
 void AGemBoard::SelectEnemy(int32 Index) { SelectedEnemy=Enemies.IsValidIndex(Index)?Index:INDEX_NONE; Selected=INDEX_NONE; }
 bool AGemBoard::SelectRay(FVector Origin,FVector Direction)
@@ -190,8 +194,18 @@ void AGemBoard::Tick(float DeltaTime)
     if (Selected>=0 && Placed.IsValidIndex(Selected))
         DrawDebugBox(GetWorld(),PlacementPosition(Occupied[Selected])+FVector(0,0,25),FVector(49,49,25),FColor::Yellow,false,-1,0,2);
     if (Enemies.IsValidIndex(SelectedEnemy)) DrawDebugSphere(GetWorld(),Enemies[SelectedEnemy].Mesh->GetComponentLocation(),24,12,FColor::Yellow,false,-1,0,2);
+    // Keep input/camera on real time. Advance combat in small steps at every
+    // speed so spawns, cooldowns, projectiles and movement use the same clock.
+    double Remaining=FMath::Clamp(DeltaTime,0.f,.1f)*FMath::Clamp(SimulationSpeed,1,100);
+    while(Remaining>1.e-7 && Phase==ERoundPhase::Combat)
+    {
+        const float Step=FMath::Min(Remaining,1.0/60.0);
+        StepCombat(Step); Remaining-=Step;
+    }
+}
+void AGemBoard::StepCombat(float DT)
+{
     if (Phase!=ERoundPhase::Combat || !DefinitionErrors.IsEmpty() || !Waves.IsValidIndex(Wave-1)) return;
-    const float DT=FMath::Min(DeltaTime,.1f);
     const auto& Current=Waves[Wave-1]; SpawnTimer-=DT;
     if (Spawned<WaveSize && SpawnTimer<=0)
     {
@@ -270,7 +284,7 @@ void AGemBoard::Tick(float DeltaTime)
             Shot.Origin=Placed[I]->GetComponentLocation()+FVector(0,0,45);
             Shot.Remaining=D->bInstant?0:FVector::Dist(Shot.Origin,E.Mesh->GetComponentLocation())/D->ProjectileSpeed;
             if(D->bInstant) ApplyHit(Shot); else Shots.Add(Shot);
-            DrawDebugLine(GetWorld(),Shot.Origin,E.Mesh->GetComponentLocation(),FColor::Cyan,false,FMath::Max(.12f,Shot.Remaining),0,2);
+            DrawDebugLine(GetWorld(),Shot.Origin,E.Mesh->GetComponentLocation(),FColor::Cyan,false,FMath::Max(.02f,Shot.Remaining/SimulationSpeed),0,2);
         }
     }
     for (int32 I=Enemies.Num()-1;I>=0;--I) if (Enemies[I].Health<=0)
@@ -283,4 +297,28 @@ void AGemBoard::Tick(float DeltaTime)
     }
     if (Lives<=0) { Phase=ERoundPhase::Defeat; return; }
     if (Spawned>=WaveSize && Enemies.IsEmpty()) EndCombat();
+}
+
+void AGemBoard::RunSpeedChecks(TFunctionRef<void(bool,const TCHAR*)> Check)
+{
+    const int32 PreviousSpeed=SimulationSpeed;
+    auto Prepare=[&]()
+    {
+        ResetRun();
+        for(int32 I=0;I<5;++I) Place(FIntPoint(8+I*4,14),5,2);
+        SelectAt(FIntPoint(8,14)); KeepSelected(); FMath::RandInit(81723);
+    };
+    Prepare(); SetSimulationSpeed(1);
+    for(int32 I=0;I<300;++I) Tick(1.f/60.f);
+    const int32 ExpectedSpawned=Spawned,ExpectedScore=Score,ExpectedLives=Lives;
+    TArray<FVector> Positions; TArray<float> Health;
+    for(const auto& Enemy:Enemies) { Positions.Add(Enemy.Mesh->GetComponentLocation()); Health.Add(Enemy.Health); }
+    Prepare(); SetSimulationSpeed(100);
+    for(int32 I=0;I<3;++I) Tick(1.f/60.f);
+    bool Same=Spawned==ExpectedSpawned && Score==ExpectedScore && Lives==ExpectedLives && Enemies.Num()==Positions.Num();
+    for(int32 I=0;I<Enemies.Num() && I<Positions.Num();++I) Same&=Positions[I].Equals(Enemies[I].Mesh->GetComponentLocation(),.1f) && FMath::IsNearlyEqual(Health[I],Enemies[I].Health,.01f);
+    Check(Same && Spawned>1,TEXT("100x advances the same spawns, movement and combat as 100 times as many 1x steps"));
+    SetSimulationSpeed(0); Check(SimulationSpeed==1,TEXT("Speed slider lower bound is 1x"));
+    SetSimulationSpeed(101); Check(SimulationSpeed==100,TEXT("Speed slider upper bound is 100x"));
+    ResetRun(); SetSimulationSpeed(PreviousSpeed);
 }

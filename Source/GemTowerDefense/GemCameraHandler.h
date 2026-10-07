@@ -9,7 +9,8 @@ class UGemCameraHandler : public UActorComponent
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera") float Yaw = -45.f;
+    static constexpr float DefaultYaw = 45.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera") float Yaw = DefaultYaw;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera") float Pitch = -35.264f;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera") FVector PanOffset = FVector::ZeroVector;
     UFUNCTION(BlueprintCallable, Category="Camera") void ResetView();

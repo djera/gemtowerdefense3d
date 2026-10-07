@@ -70,7 +70,7 @@ AGemBoard::AGemBoard()
     Camera=CreateDefaultSubobject<UCameraComponent>(TEXT("IsometricCamera"));
     Camera->SetupAttachment(RootComponent);
     Camera->ProjectionMode=ECameraProjectionMode::Orthographic;
-    Camera->SetRelativeRotation(FRotator(-35.264f,-45.f,0));
+    Camera->SetRelativeRotation(FRotator(-35.264f,UGemCameraHandler::DefaultYaw,0));
     Camera->SetRelativeLocation(-Camera->GetForwardVector()*3500.f);
     Camera->OrthoWidth=3600;
     Camera->bConstrainAspectRatio=false;
@@ -426,8 +426,10 @@ void AGemController::BeginPlay()
     for (TActorIterator<AGemBoard> It(GetWorld());It;++It) { Board=*It; break; }
     if (!Board) Board=GetWorld()->SpawnActor<AGemBoard>();
     SetViewTarget(Board);
+    CameraHandler->ResetView();
     if(!Board->DefinitionErrors.IsEmpty()) { bShowSelection=true; Status=TEXT("Definition errors - see Selected panel"); }
     FInputModeGameAndUI Mode; Mode.SetHideCursorDuringCapture(false); SetInputMode(Mode);
+    if (FParse::Param(FCommandLine::Get(),TEXT("GemCatalogSmokeTest"))) RunCatalogChecks();
     if (FParse::Param(FCommandLine::Get(),TEXT("GemSmokeTest")))
     {
         int32 Passed=0,Failed=0;
@@ -465,7 +467,7 @@ void AGemController::BeginPlay()
         Check(Rocks==4 && Towers==1,TEXT("Only the chosen gem stays; four become stones"));
         Check(!Board->ClearAllGems(),TEXT("Clear Gems cannot erase the maze during combat"));
         Board->Tick(.001f);
-        Check(Board->Enemies.Num()==1 && FVector::Dist2D(Board->Enemies[0].Mesh->GetComponentLocation(),Board->PlacementPosition(Board->EntryCell*2))<1,TEXT("Enemies spawn at the E tile"));
+        Check(Board->Enemies.Num()==1 && FVector::Dist2D(Board->Enemies[0].Mesh->GetComponentLocation(),Board->PlacementPosition(Board->EntryCell*2))<40,TEXT("Enemies spawn inside a 1x1 quadrant of the E tile"));
         Board->SelectEnemy(0);
         Check(Board->Selected==INDEX_NONE && Board->SelectedEnemy==0 && Board->SelectedInfo().Num()>=7,TEXT("Enemy selection exposes its live stats"));
         if (!Board->Enemies.IsEmpty()) Check(Board->SelectRay(Board->Enemies[0].Mesh->GetComponentLocation()+FVector(0,0,1000),FVector(0,0,-1)) && Board->SelectedEnemy==0,TEXT("Click-ray selection hits enemies"));
@@ -477,6 +479,8 @@ void AGemController::BeginPlay()
         Board->ResetRun(); OfferFive(); Board->SelectAt(FIntPoint(8,14));
         Check(Board->MergeSelected(4) && Board->Definition(0) && Board->Definition(0)->Quality==Board->Qualities[2].Id,TEXT("Four matching gems merge two grades higher"));
         Board->RunDefinitionChecks(Check);
+        Board->RunSpeedChecks(Check);
+        Board->RunNavigationChecks(Check);
         UE_LOG(LogTemp,Display,TEXT("GEM_SMOKE_RESULTS: %d passed / %d failed"),Passed,Failed);
         Board->ResetRun();
         for (int32 I=0;I<5;++I) Board->Place(FIntPoint(8+I*4,14),I,I);
@@ -509,6 +513,22 @@ void AGemController::PlayerTick(float DeltaTime)
     const float Side=SidebarWidth(W),Header=64.f;
     float X=0,Y=0; const bool HasMouse=GetMousePosition(X,Y);
     X/=Scale; Y/=Scale;
+    if (bGemsOpen)
+    {
+        HandleCatalogInput(X,Y,HasMouse,W,H);
+        bHover=false; bCameraDragging=false; bHasPreviousMouse=false;
+        Board->UpdateGhost(Hover,0,false);
+        return;
+    }
+    if (WasInputKeyJustPressed(EKeys::G)) { OpenGems(); return; }
+    const float SpeedLeft=W*.79f,SpeedRight=W-24.f;
+    if(HasMouse && WasInputKeyJustPressed(EKeys::LeftMouseButton) && X>=SpeedLeft-8 && X<=SpeedRight+8 && Y>=30 && Y<=60) bSpeedDragging=true;
+    if(bSpeedDragging)
+    {
+        if(HasMouse) Board->SetSimulationSpeed(FMath::RoundToInt(1+99*FMath::Clamp((X-SpeedLeft)/(SpeedRight-SpeedLeft),0.f,1.f)));
+        if(!IsInputKeyDown(EKeys::LeftMouseButton)) bSpeedDragging=false;
+        bCameraDragging=false; bHover=false; Board->UpdateGhost(Hover,0,false); return;
+    }
     const bool InBoard=HasMouse && X<W-Side && Y>Header && Y<H-118;
     const bool RightHeld=IsInputKeyDown(EKeys::RightMouseButton),MiddleHeld=IsInputKeyDown(EKeys::MiddleMouseButton);
     if (InBoard && (WasInputKeyJustPressed(EKeys::RightMouseButton) || WasInputKeyJustPressed(EKeys::MiddleMouseButton))) bCameraDragging=true;
@@ -550,11 +570,11 @@ void AGemController::PlayerTick(float DeltaTime)
         if (WasInputKeyJustPressed(EKeys::MouseScrollDown)) InfoScroll=FMath::Min(FMath::Max(0,Board->SelectedInfo().Num()-14),InfoScroll+2);
     }
     int32 Action=INDEX_NONE;
-    const float ButtonWidth=(W-Side-96)/7;
+    const float ButtonWidth=(W-Side-104)/8;
     if (HasMouse && Click && X>=24 && X<W-Side-24 && Y>=H-80 && Y<=H-44)
     {
         const int32 Index=int32((X-24)/(ButtonWidth+8));
-        if (Index<7 && X<=24+Index*(ButtonWidth+8)+ButtonWidth) Action=Index;
+        if (Index<8 && X<=24+Index*(ButtonWidth+8)+ButtonWidth) Action=Index;
     }
     if (Action==0 || WasInputKeyJustPressed(EKeys::P)) Status=Board->KeepSelected()?TEXT("Gem built. The other four offers became stones. Wave started."):TEXT("Place five gems, then select one and press Place.");
     if (Action==1 || WasInputKeyJustPressed(EKeys::C)) Status=Board->ClearAllGems()?TEXT("All gems and stones cleared. Place five new gems for this round."):TEXT("Clear Gems is available during the build phase.");
@@ -563,6 +583,7 @@ void AGemController::PlayerTick(float DeltaTime)
     if (Action==4 || WasInputKeyJustPressed(EKeys::T)) bRecipesOpen=!bRecipesOpen;
     if (Action==5 || WasInputKeyJustPressed(EKeys::V)) Status=Board->UpgradeSelectedTower()?TEXT("Special tower upgraded"):TEXT("Select an upgradeable special tower during the build phase.");
     if (Action==6 || WasInputKeyJustPressed(EKeys::X)) Status=Board->DemolishSelectedRock()?TEXT("Stone removed"):TEXT("Select a stone during the build phase to remove it.");
+    if (Action==7) { OpenGems(); return; }
     if (bRecipesOpen && HasMouse && Click && X>=24 && X<W-Side-24 && Y>=156 && Y<H-140)
     {
         const float RowHeight=FMath::Min(42.f,(H-300.f)/FMath::Max(1,Board->RecipeCount()));
@@ -612,14 +633,37 @@ void AGemHUD::DrawHUD()
     auto DrawRect=[&](FLinearColor Color,float X,float Y,float Width,float Height) { AHUD::DrawRect(Color,X*Scale,Y*Scale,Width*Scale,Height*Scale); };
     auto ReadMouse=[&](float& X,float& Y) { const bool Valid=PC->GetMousePosition(X,Y); X/=Scale; Y/=Scale; return Valid; };
     auto Project=[&](FVector World,FVector2D& Screen) { const bool Valid=PC->ProjectWorldLocationToScreen(World,Screen); Screen/=Scale; return Valid; };
+    // Project a world-space radius before panels so the ring follows the camera
+    // and stays behind the header, sidebar and controls.
+    if(PC->Board) if(const auto* Gem=PC->Board->Definition(PC->Board->Selected))
+    {
+        const FVector Center=PC->Board->SelectedRangeCenter();
+        constexpr int32 Segments=192;
+        for(int32 I=0;I<Segments;++I)
+        {
+            const float A=2*PI*I/Segments,B=2*PI*(I+1)/Segments;
+            FVector2D From,To;
+            if(Project(Center+FVector(FMath::Cos(A)*Gem->Range,FMath::Sin(A)*Gem->Range,0),From)
+                && Project(Center+FVector(FMath::Cos(B)*Gem->Range,FMath::Sin(B)*Gem->Range,0),To))
+                DrawLine(From.X*Scale,From.Y*Scale,To.X*Scale,To.Y*Scale,FLinearColor(.08f,.65f,.51f,.9f),2.f*Scale);
+        }
+    }
     DrawRect(FLinearColor(.018f,.027f,.045f),0,0,W,64);
     DrawRect(FLinearColor(.025f,.038f,.060f),Left,64,Side,H-64);
     DrawRect(FLinearColor(.12f,.21f,.27f),Left,64,1,H-64);
     auto Label=[&](FString S,float X,float Y,FLinearColor Color,float TextScale=1.f) { DrawText(S,Color,X*Scale,Y*Scale,GEngine->GetMediumFont(),TextScale*Scale); };
     Label(TEXT("GEM / TOWER DEFENSE"),24,21,Accent,1.1f);
     Label(FString(TEXT("GOLD  "))+FText::AsNumber(PC->Gold).ToString(),W*.20f,23,FLinearColor(1,.76f,.28f),.9f);
-    if (PC->Board) Label(FString::Printf(TEXT("SCORE  %d   |   WAVE  %d   |   LIVES  %d"),PC->Board->Score,PC->Board->Wave,PC->Board->Lives),W*.43f,23,Ink,.85f);
-    Label(FString::Printf(TEXT("CHANCE LEVEL  %d / %d"),PC->ChanceLevel,PC->Board?PC->Board->MaxChanceLevel():0),W*.76f,23,Accent,.85f);
+    if (PC->Board) Label(FString::Printf(TEXT("SCORE %d  |  WAVE %d  |  LIVES %d"),PC->Board->Score,PC->Board->Wave,PC->Board->Lives),W*.37f,23,Ink,.75f);
+    Label(FString::Printf(TEXT("CHANCE %d / %d"),PC->ChanceLevel,PC->Board?PC->Board->MaxChanceLevel():0),W*.64f,23,Accent,.8f);
+    const float SpeedLeft=W*.79f,SpeedRight=W-24.f;
+    const int32 Speed=PC->Board?PC->Board->SimulationSpeed:1;
+    Label(FString::Printf(TEXT("SPEED  %dX"),Speed),SpeedLeft,9,Accent,.78f);
+    Label(TEXT("1X - 100X"),SpeedRight-66,10,Muted,.65f);
+    DrawRect(FLinearColor(.10f,.18f,.23f),SpeedLeft,42,SpeedRight-SpeedLeft,4);
+    const float Knob=SpeedLeft+(SpeedRight-SpeedLeft)*(Speed-1)/99.f;
+    DrawRect(Accent,SpeedLeft,42,Knob-SpeedLeft,4);
+    DrawRect(Accent,Knob-5,36,10,16);
     const float TabWidth=(Side-48)/2;
     DrawRect(!PC->bShowSelection?FLinearColor(.1f,.25f,.3f):FLinearColor(.04f,.09f,.14f),Left+24,88,TabWidth,32);
     DrawRect(PC->bShowSelection?FLinearColor(.1f,.25f,.3f):FLinearColor(.04f,.09f,.14f),Left+24+TabWidth,88,TabWidth,32);
@@ -727,11 +771,11 @@ void AGemHUD::DrawHUD()
         }
         DrawRect(FLinearColor(.018f,.027f,.045f,.97f),0,H-118,Left,118);
         Label(Board->SelectedDescription(),24,H-108,Ink,.8f);
-        const TCHAR* Actions[]={TEXT("PLACE / P"),TEXT("CLEAR GEMS / C"),TEXT("MERGE 2 / 2"),TEXT("MERGE 4 / 4"),TEXT("RECIPES / T"),TEXT("UPGRADE / V"),TEXT("REMOVE / X")};
+        const TCHAR* Actions[]={TEXT("PLACE / P"),TEXT("CLEAR GEMS / C"),TEXT("MERGE 2 / 2"),TEXT("MERGE 4 / 4"),TEXT("RECIPES / T"),TEXT("UPGRADE / V"),TEXT("REMOVE / X"),TEXT("GEMS / G")};
         const bool BuildPhase=Board->Phase==ERoundPhase::Placing || Board->Phase==ERoundPhase::Choosing;
-        const bool Enabled[]={Board->CanKeepSelected(),BuildPhase,Board->CanMerge(2),Board->CanMerge(4),true,BuildPhase && Board->Selected>=0,BuildPhase && Board->Pieces.IsValidIndex(Board->Selected) && Board->Pieces[Board->Selected].bRock};
-        const float ButtonWidth=(Left-96)/7;
-        for (int32 I=0;I<7;++I)
+        const bool Enabled[]={Board->CanKeepSelected(),BuildPhase,Board->CanMerge(2),Board->CanMerge(4),true,BuildPhase && Board->Selected>=0,BuildPhase && Board->Pieces.IsValidIndex(Board->Selected) && Board->Pieces[Board->Selected].bRock,true};
+        const float ButtonWidth=(Left-104)/8;
+        for (int32 I=0;I<8;++I)
         {
             const float BX=24+I*(ButtonWidth+8);
             const bool HotAction=ReadMouse(MouseX,MouseY) && MouseX>=BX && MouseX<=BX+ButtonWidth && MouseY>=H-80 && MouseY<=H-44;
@@ -756,6 +800,7 @@ void AGemHUD::DrawHUD()
         }
     }
     Label(PC->Status,24,H-35,Ink,.9f);
+    if (PC->bGemsOpen) DrawGemCatalog(PC);
 }
 AGemGameMode::AGemGameMode()
 {

@@ -61,8 +61,10 @@ boards=[a for a in actors.get_all_level_actors() if a.get_class()==board_class]
 board=boards[0] if boards else actors.spawn_actor_from_class(board_class,unreal.Vector())
 board.set_actor_label('GemBoard_20x20')
 board.load_default_layout()
+from CreateGemMaterials import ensure_gem_reflection_environment
+ensure_gem_reflection_environment()
 if not any(isinstance(a,unreal.PlayerStart) for a in actors.get_all_level_actors()):
     actors.spawn_actor_from_class(unreal.PlayerStart,unreal.Vector(0,0,200))
-unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(unreal.Vector(-1710,2260,2090),unreal.Rotator(-35.264,-45,0))
+unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(unreal.Vector(-2260,-1710,2090),unreal.Rotator(-35.264,45,0))
 assert level.save_current_level(), 'Could not save the populated starter level'
 unreal.log('GEM_TEMPLATE_SETUP_COMPLETE')

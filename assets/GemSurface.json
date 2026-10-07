@@ -1,0 +1,9 @@
+{
+  "roughness": 0.075,
+  "specular": 0.8,
+  "clear_coat": 1.0,
+  "clear_coat_roughness": 0.04,
+  "cel_fill": 0.55,
+  "diffuse_weight": 0.35,
+  "environment_intensity": 0.7
+}

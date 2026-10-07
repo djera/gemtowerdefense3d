@@ -1,6 +1,8 @@
 import unreal, json
 from pathlib import Path
 from CelMaterial import finish_cel, linear_color, connected_nodes, update_cel_defaults, CEL_VERSION, style
+from CreateOutlineMaterial import create_outline_material
+from CreateGemMaterials import create_gem_materials
 root=Path(__file__).resolve().parents[1]
 palette=json.loads((root/'assets/ArtPalette.json').read_text())
 tools=unreal.AssetToolsHelpers.get_asset_tools()
@@ -37,35 +39,6 @@ stone=unreal.load_asset('/Game/Prototype/Meshes/SM_MazeStone')
 stone.set_material(0,materials['Stone']); save(stone)
 if stone.get_num_sections(0)>1:
     stone.set_material(1,materials['Outline']); save(stone)
-outline_path=folder+'/M_CelOutline'
-if not library.does_asset_exist(outline_path):
-    mat=tools.create_asset('M_CelOutline',folder,unreal.Material,unreal.MaterialFactoryNew())
-    mat.set_editor_property('shading_model',unreal.MaterialShadingModel.MSM_UNLIT)
-    mat.set_editor_property('blend_mode',unreal.BlendMode.BLEND_MASKED)
-    mat.set_editor_property('two_sided',True)
-    def n(cls): return edit.create_material_expression(mat,getattr(unreal,'MaterialExpression'+cls))
-    color=n('Constant3Vector'); color.constant=linear_color(palette['Outline'])
-    edit.connect_material_property(color,'',unreal.MaterialProperty.MP_EMISSIVE_COLOR)
-    sign=n('TwoSidedSign'); reverse=n('OneMinus')
-    assert edit.connect_material_expressions(sign,'',reverse,'')
-    edit.connect_material_property(reverse,'',unreal.MaterialProperty.MP_OPACITY_MASK)
-    normal=n('VertexNormalWS'); expand=n('Multiply'); expand.set_editor_property('const_b',1.6)
-    edit.connect_material_expressions(normal,'',expand,'A')
-    edit.connect_material_property(expand,'',unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
-    errors=edit.recompile_material(mat); assert not errors, list(errors)
-    save(mat)
-outline=unreal.load_asset(outline_path)
-if library.get_metadata_tag(outline,'GemTDOutlineVersion')!='1':
-    reverse=edit.get_material_property_input_node(outline,unreal.MaterialProperty.MP_OPACITY_MASK)
-    sign=edit.create_material_expression(outline,unreal.MaterialExpressionTwoSidedSign)
-    assert edit.connect_material_expressions(sign,'',reverse,'')
-    errors=edit.recompile_material(outline); assert not errors, list(errors)
-    library.set_metadata_tag(outline,'GemTDOutlineVersion','1')
-    save(outline)
-color=edit.get_material_property_input_node(outline,unreal.MaterialProperty.MP_EMISSIVE_COLOR)
-color.constant=linear_color(palette['Outline'])
-expand=edit.get_material_property_input_node(outline,unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
-expand.set_editor_property('const_b',style['outline_width_cm'])
-errors=edit.recompile_material(outline); assert not errors, list(errors)
-save(outline)
+create_outline_material()
+create_gem_materials()
 unreal.log('GEM_PASTEL_CEL_MATERIALS_READY')

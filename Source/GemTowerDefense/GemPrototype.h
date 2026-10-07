@@ -127,6 +127,10 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 Lives = 20;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 Score = 0;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 OffersPlaced = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 SimulationSpeed = 1;
+    UFUNCTION(BlueprintCallable) void SetSimulationSpeed(int32 Speed) { SimulationSpeed=FMath::Clamp(Speed,1,100); }
+    void RunSpeedChecks(TFunctionRef<void(bool,const TCHAR*)> Check);
+    void RunNavigationChecks(TFunctionRef<void(bool,const TCHAR*)> Check);
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 Selected = INDEX_NONE;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 SelectedEnemy = INDEX_NONE;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") TArray<FGemPiece> Pieces;
@@ -149,6 +153,8 @@ public:
     TArray<FGemCatalogItem> GemTypes,Qualities;
     TArray<FGemChanceLevel> ChanceLevels;
     const FTowerDefinition* BaseDefinition(int32 Type,int32 Quality) const;
+    TArray<FString> GemCatalogIds(bool bSpecial) const;
+    TArray<FString> GemCatalogStats(const FString& Id) const;
     const FTowerDefinition* FindDefinition(const FString& Id) const { return Definitions.Find(Id); }
     const FTowerDefinition* MergeResult(int32 Count) const;
     void RunDefinitionChecks(TFunctionRef<void(bool,const TCHAR*)> Check);
@@ -167,6 +173,7 @@ public:
     UFUNCTION(BlueprintPure) bool CanCraft(int32 Recipe) const;
     UFUNCTION(BlueprintPure) FString SelectedDescription() const;
     UFUNCTION(BlueprintPure) TArray<FString> SelectedInfo() const;
+    UFUNCTION(BlueprintPure) FVector SelectedRangeCenter() const;
     UFUNCTION(BlueprintCallable) void SelectEnemy(int32 Index);
     bool SelectRay(FVector Origin,FVector Direction);
     UFUNCTION(BlueprintPure) bool HasValidRoute() const;
@@ -221,6 +228,7 @@ private:
     class UStaticMeshComponent* CreateOutline(class UStaticMeshComponent* Mesh);
     TArray<int32> FindRecipePieces(int32 Recipe) const;
     void EndCombat();
+    void StepCombat(float DT);
     TArray<FIntPoint> Occupied;
     void BuildLandscape();
     void ApplyTerrainBlend();
@@ -251,10 +259,23 @@ public:
     FString Status = TEXT("Choose a position to place a gem");
     bool bHover = false;
     bool bRecipesOpen = false;
+    bool bGemsOpen = false;
+    bool bCatalogSpecial = false;
+    int32 CatalogSelected = INDEX_NONE, CatalogListScroll = 0, CatalogStatsScroll = 0;
+    TArray<FString> CatalogIds, CatalogStats;
+    UPROPERTY(Transient) TObjectPtr<class AGemCatalogPreview> CatalogPreview;
+    void OpenGems();
+    void CloseGems();
+    void SelectCatalogGem(int32 Index);
+    void SetCatalogGroup(bool bSpecial);
+    bool CatalogClick(float X,float Y,int32 W,int32 H);
+    void HandleCatalogInput(float X,float Y,bool bHasMouse,int32 W,int32 H);
+    void RunCatalogChecks();
     bool bShowSelection = false;
     int32 InfoScroll = 0;
     bool bCameraDragging = false;
     bool bHasPreviousMouse = false;
+    bool bSpeedDragging = false;
     FVector2D PreviousMouse = FVector2D::ZeroVector;
     FIntPoint Hover;
     static float SidebarWidth(int32 Width) { return FMath::Clamp(Width*.24f,290.f,360.f); }
@@ -267,6 +288,7 @@ class AGemHUD : public AHUD
     GENERATED_BODY()
 public:
     virtual void DrawHUD() override;
+    void DrawGemCatalog(AGemController* PC);
 };
 
 UCLASS()
