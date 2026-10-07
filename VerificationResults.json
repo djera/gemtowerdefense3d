@@ -15,7 +15,7 @@
     "World position snaps correctly",
     "Exactly 400 typed tiles",
     "Map has snow/grass, roads, intersections and checkpoints",
-    "Exact ASCII tile counts",
+    "Exact ASCII tile counts match editable layout",
     "Every tile matches its ASCII coordinate",
     "Entry and exit match the supplied map",
     "Entry and exit cannot be covered",

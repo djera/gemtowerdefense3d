@@ -1,10 +1,12 @@
 """Build the world-aligned S-tile material used by the board's runtime mask."""
 import unreal, struct, zlib, json
-from CelMaterial import finish_cel, linear_color
+from CelMaterial import finish_cel, linear_color, connected_nodes, update_cel_defaults, CEL_VERSION
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 tools=unreal.AssetToolsHelpers.get_asset_tools()
 edit=unreal.MaterialEditingLibrary
+def save(asset):
+    assert unreal.EditorAssetLibrary.save_loaded_asset(asset), 'Could not save '+asset.get_path_name()
 path='/Game/Prototype/Materials/M_TerrainBlendPastel'
 if not unreal.EditorAssetLibrary.does_asset_exist(path):
     source=root/'assets/terrain/T_TerrainBlendDefault.png'
@@ -21,7 +23,7 @@ if not unreal.EditorAssetLibrary.does_asset_exist(path):
     texture.set_editor_property('srgb',False)
     texture.set_editor_property('compression_settings',unreal.TextureCompressionSettings.TC_VECTOR_DISPLACEMENTMAP)
     texture.set_editor_property('mip_gen_settings',unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS)
-    unreal.EditorAssetLibrary.save_loaded_asset(texture)
+    save(texture)
     mat=tools.create_asset('M_TerrainBlendPastel','/Game/Prototype/Materials',unreal.Material,unreal.MaterialFactoryNew())
     edit.set_base_material_usage(mat,unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
     def node(kind,x=0,y=0): return edit.create_material_expression(mat,getattr(unreal,'MaterialExpression'+kind),x,y)
@@ -48,5 +50,10 @@ if not unreal.EditorAssetLibrary.does_asset_exist(path):
     color=node('LinearInterpolate',580,0)
     wire(grass,'',color,'A'); wire(snow,'',color,'B'); wire(blend,'',color,'Alpha')
     finish_cel(mat,color)
-    unreal.EditorAssetLibrary.save_loaded_asset(mat)
+    save(mat)
+mat=unreal.load_asset(path)
+if unreal.EditorAssetLibrary.get_metadata_tag(mat,'GemTDCelVersion')!=CEL_VERSION:
+    color=next(n for n in connected_nodes(mat) if isinstance(n,unreal.MaterialExpressionLinearInterpolate))
+    finish_cel(mat,color)
+update_cel_defaults(mat); save(mat)
 unreal.log('GEM_TERRAIN_BLEND_MATERIAL_READY')

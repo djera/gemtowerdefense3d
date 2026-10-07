@@ -34,8 +34,12 @@ bool ShortestPath(FIntPoint Start,FIntPoint End,int32 Size,TFunctionRef<bool(FIn
 void AGemBoard::BuildRoadOrder()
 {
     RoadOrder.Reset();
-    TSet<FIntPoint> Roads;
-    for(const auto& T:Tiles) if(T.Type!=EGroundType::Snow && T.Type!=EGroundType::Grass) Roads.Add(T.Cell);
+    TSet<FIntPoint> Roads,Required;
+    for(const auto& T:Tiles)
+    {
+        if(T.Type!=EGroundType::Snow && T.Type!=EGroundType::Grass) Roads.Add(T.Cell);
+        if(T.Type==EGroundType::Road || T.Type==EGroundType::Checkpoint || T.Type==EGroundType::Entry || T.Type==EGroundType::Exit) Required.Add(T.Cell);
+    }
     TArray<FIntPoint> Anchors={EntryCell}; Anchors.Append(CheckpointOrder); Anchors.Add(ExitCell);
     TArray<TArray<FIntPoint>> Legs; TSet<FIntPoint> Spine;
     for(int32 I=1;I<Anchors.Num();++I)
@@ -50,11 +54,14 @@ void AGemBoard::BuildRoadOrder()
     auto Emit=[&](FIntPoint P)
     {
         if(!Roads.Contains(P) || Seen.Contains(P)) return;
-        Seen.Add(P); FGemRoadTile T; T.Cell=P; T.Index=RoadOrder.Num()+1;
+        Seen.Add(P);
+        // Intersections connect the road network but are never required targets.
+        if(!Required.Contains(P)) return;
+        FGemRoadTile T; T.Cell=P; T.Index=RoadOrder.Num()+1;
         T.Checkpoint=CheckpointOrder.Find(P)+1; RoadOrder.Add(T);
     };
-    // Include side arms of checkpoint Ts and every other branch on the first
-    // encounter with its attachment to the E -> checkpoints -> X journey.
+    // Traverse branches through intersections to find required road tiles on the
+    // first encounter with their attachment to the checkpoint journey.
     TFunction<void(FIntPoint)> Branches;
     Branches=[&](FIntPoint P)
     {

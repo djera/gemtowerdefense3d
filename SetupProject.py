@@ -5,6 +5,8 @@ ROOT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT/'Tools'))
 tools=unreal.AssetToolsHelpers.get_asset_tools()
 edit=unreal.MaterialEditingLibrary
+def save(asset):
+    assert unreal.EditorAssetLibrary.save_loaded_asset(asset), 'Could not save '+asset.get_path_name()
 colors={'Snow':(.72,.82,.88),'Grass':(.11,.28,.13),'Road':(.24,.27,.29),'Intersection':(.17,.19,.21),'Checkpoint':(.8,.42,.025),'Stone':(.16,.19,.22),'Enemy':(.7,.12,.07),'Path':(.06,.5,.55),'Valid':(.08,.85,.51),'Invalid':(.95,.08,.12)}
 for name,rgb in colors.items():
     path='/Game/Prototype/Materials/M_'+name
@@ -12,7 +14,7 @@ for name,rgb in colors.items():
     if mat is not None:
         edit.set_base_material_usage(mat,unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
         edit.recompile_material(mat)
-        unreal.EditorAssetLibrary.save_loaded_asset(mat)
+        save(mat)
         continue
     mat=tools.create_asset('M_'+name,'/Game/Prototype/Materials',unreal.Material,unreal.MaterialFactoryNew())
     edit.set_base_material_usage(mat,unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
@@ -25,7 +27,7 @@ for name,rgb in colors.items():
     edit.connect_material_property(fill,'',unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     rough=edit.create_material_expression(mat,unreal.MaterialExpressionConstant,-300,300); rough.r=.8
     edit.connect_material_property(rough,'',unreal.MaterialProperty.MP_ROUGHNESS)
-    edit.recompile_material(mat); unreal.EditorAssetLibrary.save_loaded_asset(mat)
+    edit.recompile_material(mat); save(mat)
 if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Gems/Meshes/SM_Topaz_Perfect'):
     runpy.run_path(str(ROOT/'assets/gems/Unreal/import_gems.py'),run_name='__main__')
 if (ROOT/'assets/stone/SM_MazeStone.fbx').exists():
@@ -39,12 +41,13 @@ if (ROOT/'assets/stone/SM_MazeStone.fbx').exists():
     options.import_materials=False; options.import_textures=False
     options.automated_import_should_detect_type=False
     options.mesh_type_to_import=unreal.FBXImportType.FBXIT_STATIC_MESH
+    options.static_mesh_import_data.normal_import_method=unreal.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS
     task.options=options
     tools.import_asset_tasks([task])
     assert task.imported_object_paths, 'Stone mesh import failed'
 stone=unreal.load_asset('/Game/Prototype/Meshes/SM_MazeStone')
 stone.set_material(0,unreal.load_asset('/Game/Prototype/Materials/M_Stone'))
-unreal.EditorAssetLibrary.save_loaded_asset(stone)
+save(stone)
 runpy.run_path(str(ROOT/'Tools/CreateCelMaterials.py'),run_name='__main__')
 runpy.run_path(str(ROOT/'Tools/CreateTerrainMaterial.py'),run_name='__main__')
 level=unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)

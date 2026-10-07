@@ -30,7 +30,7 @@ def shortest(start,end,blocks):
 def assert_route(placements=()):
     order=list(board.road_order)
     rows=list(board.layout_rows)
-    expected={(x,y) for y,row in enumerate(rows) for x,symbol in enumerate(row) if symbol in 'RIEXC123456789'}
+    expected={(x,y) for y,row in enumerate(rows) for x,symbol in enumerate(row) if symbol in 'REXC123456789'}
     assert {xy(t.cell) for t in order}==expected
     assert [t.index for t in order]==list(range(1,len(order)+1))
     assert [t.checkpoint for t in order if t.checkpoint]>[]
@@ -51,7 +51,12 @@ def assert_route(placements=()):
 try:
     board.load_default_layout()
     assert_route()
-    check('Default enumerates all 68 R/I/checkpoint/E/X tiles, preserving checkpoint order',len(board.road_order)==68)
+    required_count=sum(s in 'REXC123456789' for row in (root/'Content/Data/BoardLayout.txt').read_text().splitlines() for s in row)
+    check('Default enumerates all editable R/checkpoint/E/X tiles, preserving checkpoint order',len(board.road_order)==required_count)
+    check('Intersections are absent from required targets and debug numbering',all(board.layout_rows[t.cell.y][t.cell.x]!='I' for t in board.road_order))
+    route=[xy(c) for c in board.debug_route_cells()]
+    check('Shortest routes can traverse intersections', (4,4) in route)
+    check('An intersection-only side arm does not force a detour', (8,4) not in route)
     check('Each route leg is shortest and every required road tile is visited in order',True)
     original=[(t.index,xy(t.cell)) for t in board.road_order]
     check('A quadrant-overlap road placement is permitted with a detour',board.can_place(p(19,13)))
@@ -65,7 +70,21 @@ try:
     board.select_at(p(4,18)); board.keep_selected()
     check('A stone retains the same quadrant obstruction',board.pieces[0].rock and board.road_is_obstructed(p(9,6)))
     board.reset_run()
-    check('Clearing gems restores road requirements and stable indices',board.required_road_count()==68 and original==[(t.index,xy(t.cell)) for t in board.road_order])
+    check('Clearing gems restores road requirements and stable indices',board.required_road_count()==required_count and original==[(t.index,xy(t.cell)) for t in board.road_order])
+    intersection_ring=((16,18),(20,18),(18,16),(18,20))
+    for point in intersection_ring[:-1]:
+        assert board.can_place(p(*point)),point
+        board.place(p(*point),0,0)
+    if board.layout_rows[9][9]=='I':
+        assert board.can_place(p(*intersection_ring[-1]))
+        board.place(p(*intersection_ring[-1]),0,0)
+        check('An unreachable unobstructed intersection does not invalidate placement',not board.road_is_obstructed(p(9,9)) and board.has_valid_route())
+        assert_route(intersection_ring)
+    else:
+        # The editable layout can promote this former intersection to a road.
+        check('A road replacing the former intersection cannot be enclosed',not board.can_place(p(*intersection_ring[-1])))
+        assert_route(intersection_ring[:-1])
+    board.reset_run()
     for point in ((16,12),(20,12),(18,10)):
         assert board.can_place(p(*point)),point
         board.place(p(*point),0,0)

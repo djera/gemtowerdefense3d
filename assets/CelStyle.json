@@ -1,0 +1,9 @@
+{
+  "shadow_band": 0.18,
+  "midtone_band": 0.46,
+  "highlight_band": 1.0,
+  "shadow_threshold": 0.18,
+  "highlight_threshold": 0.68,
+  "outline_width_cm": 4.25,
+  "road_border_fraction": 0.035
+}

@@ -68,7 +68,11 @@ void AGemBoard::ApplyPieceVisual(int32 I)
     UStaticMesh* Model=LoadObject<UStaticMesh>(nullptr,*Def->Model); if(!Model) return;
     Placed[I]->SetStaticMesh(Model); Placed[I]->EmptyOverrideMaterials();
     Placed[I]->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*Def->Material));
-    ApplyGemSize(Placed[I]); Placed[I]->SetWorldLocation(PlacementPosition(Occupied[I]));
+    ApplyGemSize(Placed[I]);
+    FVector Position=PlacementPosition(Occupied[I]);
+    if(Pieces[I].bRock)
+        Position.Z=8.f-Model->GetBoundingBox().Min.Z*Placed[I]->GetComponentScale().Z-.75f;
+    Placed[I]->SetWorldLocation(Position);
     if (Outlines.IsValidIndex(I)) Outlines[I]->SetStaticMesh(Placed[I]->GetStaticMesh());
 }
 UStaticMeshComponent* AGemBoard::CreateOutline(UStaticMeshComponent* Mesh)

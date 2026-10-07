@@ -11,13 +11,13 @@ and the installed UE_5.8 engine. No conversion copy is needed.
 Sibling folders named "gemtowerdefense 5.8", "gemtowerdefense 5.8 - 2",
 and similar are older conversion copies, not the active project.
 
-20 x 20 grid, 100 Unreal units per cell. Maps/BoardLayout.txt holds the
+20 x 20 grid, 100 Unreal units per cell. Content/Data/BoardLayout.txt holds the
 fixed ASCII map: S=Snow/grass, R=Road, I=Intersection, E=Entry, X=Exit.
 Numbers 1-6 are checkpoints, visited in numeric order between E and X.
 First text line is grid row 0; each line runs along positive world X.
 Intersections use darker road material. Checkpoints are road tiles with
-gold circular markers. The supplied layout has 332 S, 41 road,
-19 intersection, 6 checkpoint, one entry and one exit tile.
+gold circular markers. The current editable layout has 332 S, 42 road,
+18 intersection, 6 checkpoint, one entry and one exit tile.
 Entry and exit use road materials. S uses snow or grass in patches, with
 soft blending only between S tiles; all road and waypoint edges stay hard.
 The saved level includes the board so terrain is visible in the editor.
@@ -42,8 +42,10 @@ a tower, the other four become stone blocks, and the wave starts.
 CLEAR GEMS (C) clears the board during the build phase so gems can be
 re-placed. Left click gems, stones or enemies to inspect their live stats.
 Green preview = valid; red = overlap, protected tile, or blocked route.
-Road tiles R/I/checkpoints/E/X are enumerated once, from 1 to N, along the
-E -> checkpoints 1..6 -> X journey, including every T side arm and road branch.
+Road tiles R/checkpoints/E/X are enumerated once, from 1 to N, along the
+E -> checkpoints 1..6 -> X journey, including required roads on branches.
+I intersections remain traversable connectors, but do not need to be visited
+and receive no debug index. The current board has 50 numbered required tiles.
 Ground enemies take a shortest half-cell-grid path to each required tile in order;
 snow/grass can be used for detours. Flying enemies fly directly between those same
 required road targets. Each 2x2 road tile is excluded if a gem or rock overlaps any
@@ -72,9 +74,23 @@ overwrites the definitions, so do not run it after making balance edits.
 Content/Data/ImportNotes.txt documents source repairs, units and editing.
 The previous JavaScript extractor is historical and should not be rerun.
 
-Art uses pastel colors and three lighting bands, plus object outlines.
-assets/ArtPalette.json defines the colors used by SetupProject.py.
+Art uses pastel base colors with three high-contrast lighting bands,
+near-black object outlines and ink borders around road/intersection cells.
+Snow/grass still blends softly only across S-S borders. Maze stones are
+dark angular boulders with a broad flat base, embedded slightly into the
+terrain, and sparse ink fracture marks.
+assets/ArtPalette.json defines colors; assets/CelStyle.json controls band
+strengths, lighting thresholds, outline width (cm) and road border width
+(fraction of a tile). Run SetupProject.py to apply either file's changes.
 assets/stone contains the Blender source, FBX and generator for maze stones.
+
+Cel colors, shade bands and outlines are procedural, so their sharpness is
+controlled by render resolution rather than a painted texture's resolution.
+The game and editor render at 150% per axis (2.25x native pixel count) and
+downsample, with FXAA and automatic/DPI resolution reductions disabled.
+For lower GPU cost, set r.ScreenPercentage in Config/DefaultEngine.ini and
+ManualScreenPercentage in Config/DefaultEditor.ini to 100. Restart the editor
+after changing these defaults. S-S terrain blending remains intentionally soft.
 
 Architecture: GemPrototype.h/.cpp contains the typed board, isometric
 controller, placement logic, HUD and game mode. GemGameplay.cpp contains

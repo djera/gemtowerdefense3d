@@ -30,8 +30,9 @@ check('Exactly 400 typed tiles',len(tiles)==400)
 types={str(t.get_editor_property('type')) for t in tiles}
 check('Map has snow/grass, roads, intersections and checkpoints',all(str(t) in types for t in [unreal.GroundType.ROAD,unreal.GroundType.INTERSECTION,unreal.GroundType.CHECKPOINT]))
 counts={t:sum(tile.get_editor_property('type')==t for tile in tiles) for t in [unreal.GroundType.SNOW,unreal.GroundType.GRASS,unreal.GroundType.ROAD,unreal.GroundType.INTERSECTION,unreal.GroundType.CHECKPOINT,unreal.GroundType.ENTRY,unreal.GroundType.EXIT]}
-check('Exact ASCII tile counts',[counts[unreal.GroundType.SNOW]+counts[unreal.GroundType.GRASS],counts[unreal.GroundType.ROAD],counts[unreal.GroundType.INTERSECTION],counts[unreal.GroundType.CHECKPOINT],counts[unreal.GroundType.ENTRY],counts[unreal.GroundType.EXIT]]==[332,41,19,6,1,1])
-expected=(root/'Maps/BoardLayout.txt').read_text().splitlines()
+expected=(root/'Content/Data/BoardLayout.txt').read_text().splitlines()
+symbols=''.join(expected)
+check('Exact ASCII tile counts match editable layout',[counts[unreal.GroundType.SNOW]+counts[unreal.GroundType.GRASS],counts[unreal.GroundType.ROAD],counts[unreal.GroundType.INTERSECTION],counts[unreal.GroundType.CHECKPOINT],counts[unreal.GroundType.ENTRY],counts[unreal.GroundType.EXIT]]==[symbols.count('S')+symbols.count('G'),symbols.count('R'),symbols.count('I'),sum(symbols.count(s) for s in 'C123456789'),symbols.count('E'),symbols.count('X')])
 legend={'S':unreal.GroundType.SNOW,'R':unreal.GroundType.ROAD,'I':unreal.GroundType.INTERSECTION,'C':unreal.GroundType.CHECKPOINT,'E':unreal.GroundType.ENTRY,'X':unreal.GroundType.EXIT}
 legend.update({n:unreal.GroundType.CHECKPOINT for n in '123456789'})
 check('Every tile matches its ASCII coordinate',all(tile.get_editor_property('type') in [unreal.GroundType.SNOW,unreal.GroundType.GRASS] if expected[i//20][i%20]=='S' else tile.get_editor_property('type')==legend[expected[i//20][i%20]] for i,tile in enumerate(tiles)))

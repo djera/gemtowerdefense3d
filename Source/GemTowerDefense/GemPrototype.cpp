@@ -136,7 +136,7 @@ void AGemBoard::BuildLandscape()
         TEXT("SSSSSSSSI6IRRRRRRRRX"),TEXT("SSSSSSSSSSSSSSSSSSSS"),
         TEXT("SSSSSSSSSSSSSSSSSSSS"),TEXT("SSSSSSSSSSSSSSSSSSSS")};
     TArray<FString> Rows;
-    const bool Loaded=LayoutRows.Num()>0 ? (Rows=LayoutRows,true) : FFileHelper::LoadFileToStringArray(Rows,*(FPaths::ProjectDir()/TEXT("Maps/BoardLayout.txt")));
+    const bool Loaded=LayoutRows.Num()>0 ? (Rows=LayoutRows,true) : FFileHelper::LoadFileToStringArray(Rows,*(FPaths::ProjectContentDir()/TEXT("Data/BoardLayout.txt")));
     bool Valid=Loaded && Rows.Num()==GridSize;
     int32 Entries=0,Exits=0;
     int32 Numbers[10]={},LastNumber=0;
