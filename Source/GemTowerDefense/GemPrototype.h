@@ -4,6 +4,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/HUD.h"
+#include "Dom/JsonObject.h"
 #include "GemPrototype.generated.h"
 
 UENUM(BlueprintType)
@@ -16,11 +17,14 @@ USTRUCT(BlueprintType)
 struct FGemPiece
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Type = 0;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Quality = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FName DefinitionId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bRock = false;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bPending = true;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FName Special;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Level = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Kills = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float SpeedAura = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float DamageAura = 0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) TArray<int32> TargetIds;
 };
 
 USTRUCT()
@@ -41,6 +45,8 @@ struct FGemEnemy
     float StunTime = 0;
     float ArmorPenalty = 0;
     float ArmorTime = 0;
+    int32 Id = 0, LastHitTower = INDEX_NONE, PoisonTower = INDEX_NONE;
+    float PoisonSlow = 0, AuraSlow = 0, AuraArmor = 0, EffectiveSpeed = 0;
 };
 
 struct FGemModifier
@@ -52,12 +58,16 @@ struct FGemModifier
 };
 struct FTowerDefinition
 {
-    FString Id,Name,Model,Upgrade;
-    int32 BaseType=0,Quality=0,Dice=1,Sides=1,Targets=1,UpgradeCost=0;
-    float Damage=1,Range=300,Interval=1;
-    bool bGround=true,bAir=true;
+    FString Id,Name,Model,Material,Upgrade,BaseType,Quality,TowerType;
+    int32 Dice=1,Sides=1,Targets=1,UpgradeCost=0,InitialLevel=0;
+    float Damage=1,Range=300,Interval=1,ProjectileSpeed=1000,DamagePerLevel=.1f;
+    bool bGround=true,bAir=true,bInstant=false,bStandard=false;
     TArray<FGemModifier> Modifiers;
+    TSharedPtr<FJsonObject> Json;
 };
+struct FGemCatalogItem { FString Id,Name; bool bMerge=true; };
+struct FGemChanceLevel { int32 Cost=0; TMap<FString,int32> Weights; };
+struct FGemShot { int32 Tower=INDEX_NONE,EnemyId=0; float Damage=0,Remaining=0; FVector Origin; };
 struct FGemRecipe
 {
     FString Name,Result;
@@ -68,11 +78,14 @@ struct FWaveDefinition
     int32 Count=10,Reward=5;
     float Health=40,Speed=100,SpawnInterval=.65f,Armor=0;
     bool bFlying=false;
+    FString ArmorType=TEXT("Neutral");
+    TSharedPtr<FJsonObject> Json;
 };
 struct FGemAreaEffect
 {
     FVector Center;
     float Radius=0,Damage=0,Remaining=0;
+    int32 Tower=INDEX_NONE;
 };
 
 USTRUCT(BlueprintType)
@@ -81,6 +94,16 @@ struct FGroundTile
     GENERATED_BODY()
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FIntPoint Cell = FIntPoint::ZeroValue;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) EGroundType Type = EGroundType::Grass;
+};
+
+USTRUCT(BlueprintType)
+struct FGemRoadTile
+{
+    GENERATED_BODY()
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FIntPoint Cell=FIntPoint::ZeroValue;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Index=0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Checkpoint=0;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bExcluded=false;
 };
 
 UCLASS()
@@ -108,12 +131,28 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") int32 SelectedEnemy = INDEX_NONE;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Round") TArray<FGemPiece> Pieces;
     UPROPERTY() TArray<FGemEnemy> Enemies;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Path") TArray<FGemRoadTile> RoadOrder;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Path") bool bShowRoadIndices=true;
+    UFUNCTION(BlueprintPure) bool RoadIsObstructed(FIntPoint Cell) const;
+    UFUNCTION(BlueprintPure) TArray<FIntPoint> DebugRouteCells() const;
+    UFUNCTION(BlueprintPure) int32 RequiredRoadCount() const;
+    UFUNCTION(BlueprintPure) int32 EnemyRoadTarget(int32 Index) const;
     static constexpr int32 GridSize = 20;
     static constexpr float CellSize = 100.f;
     UFUNCTION(BlueprintPure) bool CanPlace(FIntPoint HalfCell) const;
     UFUNCTION(BlueprintPure) FVector PlacementPosition(FIntPoint HalfCell) const;
     UFUNCTION(BlueprintPure) FIntPoint Snap(FVector World) const;
     UFUNCTION(BlueprintCallable) void Place(FIntPoint HalfCell, int32 Type, int32 Quality = 4);
+    UFUNCTION(BlueprintCallable) void PlaceDefinition(FIntPoint HalfCell, FName DefinitionId);
+    UFUNCTION(BlueprintCallable, CallInEditor) void ReloadDefinitions();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Definitions") TArray<FString> DefinitionErrors;
+    TArray<FGemCatalogItem> GemTypes,Qualities;
+    TArray<FGemChanceLevel> ChanceLevels;
+    const FTowerDefinition* BaseDefinition(int32 Type,int32 Quality) const;
+    const FTowerDefinition* FindDefinition(const FString& Id) const { return Definitions.Find(Id); }
+    const FTowerDefinition* MergeResult(int32 Count) const;
+    void RunDefinitionChecks(TFunctionRef<void(bool,const TCHAR*)> Check);
+    int32 MaxChanceLevel() const { return ChanceLevels.Num()-1; }
     UFUNCTION(BlueprintCallable) void Remove(FIntPoint HalfCell);
     UFUNCTION(BlueprintCallable) void Regenerate();
     UFUNCTION(BlueprintCallable, CallInEditor) void LoadDefaultLayout();
@@ -146,7 +185,6 @@ private:
     UPROPERTY() TObjectPtr<class UInstancedStaticMeshComponent> CheckpointMarkers;
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Ghost;
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Backdrop;
-    UPROPERTY() TArray<TObjectPtr<class UStaticMesh>> GemModels;
     UPROPERTY() TObjectPtr<class UMaterialInterface> ValidMaterial;
     UPROPERTY() TObjectPtr<class UMaterialInterface> InvalidMaterial;
     UPROPERTY() TArray<TObjectPtr<class UStaticMeshComponent>> Placed;
@@ -156,18 +194,26 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> TerrainBlendInstance;
     TArray<FVector> Route;
     TArray<FVector> AirRoute;
+    TArray<int32> RouteRoadIndices,AirRoadIndices;
     TArray<FWaveDefinition> Waves;
     TArray<FGemAreaEffect> Areas;
+    TArray<FGemShot> Shots;
+    int32 NextEnemyId=1;
     TArray<float> TowerMana;
     TArray<float> AttackCooldown;
     int32 Spawned = 0;
     int32 WaveSize = 0;
     float SpawnTimer = 0;
     TMap<FString,FTowerDefinition> Definitions;
+    TSharedPtr<FJsonObject> Catalog;
+    TMap<int32,int32> MergeRules;
+    FString RockDefinition;
     TArray<FGemRecipe> Recipes;
     void LoadDefinitions();
     void RebuildRoute();
-    bool FindRoute(TArray<FVector>& Result, const FIntPoint* ExtraBlock = nullptr) const;
+    bool FindRoute(TArray<FVector>& Result, const FIntPoint* ExtraBlock = nullptr, TArray<int32>* RoadIndices=nullptr) const;
+    void BuildRoadOrder();
+    bool RoadIsBlocked(FIntPoint Cell,const FIntPoint* ExtraBlock) const;
     bool FootprintAvailable(FIntPoint HalfCell) const;
     void MakeRock(int32 Index);
     void StartWave();
@@ -180,6 +226,9 @@ private:
     void ApplyTerrainBlend();
     void ClearGems();
     void ApplyGemSize(class UStaticMeshComponent* Mesh) const;
+    void ApplyHit(const FGemShot& Shot);
+    void DamageEnemy(FGemEnemy& Enemy,float Damage,int32 Tower,bool ApplyArmor=true);
+    void UpdateEnemyAuras(FGemEnemy& Enemy);
 };
 
 UCLASS()

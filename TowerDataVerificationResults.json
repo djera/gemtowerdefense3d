@@ -1,0 +1,12 @@
+{
+  "passed": [
+    "All original definitions validate in Unreal",
+    "Adding a ninth gem type validates without rebuilding",
+    "Numeric compatibility API uses catalog order",
+    "Edited stats are used by selection summary",
+    "New nested variables appear automatically",
+    "Edited modifier values appear automatically",
+    "String-ID placement resolves newly defined Great tower"
+  ],
+  "count": 7
+}

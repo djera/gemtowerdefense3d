@@ -1,0 +1,96 @@
+TOWER DEFINITIONS — EDITING AND IMPORT NOTES
+
+Gems.json is the editable gameplay catalog. Recipes.json holds ingredients and
+results; Waves.json still contains the prototype waves. Edit these files and
+press F5 on an empty build board, or restart Play. Clear Gems empties the board
+during a build phase. Invalid data is logged as GEM_DATA and shown in Selected.
+Run Tools/ValidateDefinitions.py for a check before opening Unreal.
+
+Use string IDs for gem_types, qualities, tower_types, recipe ingredients,
+upgrades_to and rock_definition. Quality array order determines merge progression;
+merge_rules defines the counts and steps. The chance table uses quality IDs.
+Great is enabled for merging and has zero chance in every placement row.
+The numeric Place API remains as a compatibility wrapper over catalog array order;
+new Blueprint calls can use PlaceDefinition with the stable definition ID.
+
+Every tower has an explicit model and material asset path. Great currently reuses
+Perfect meshes; special towers reuse their base gem's Perfect mesh. Assign new
+assets in these fields to replace them. The /Game/Gems and /Game/Prototype folders
+are included in cooking, and Data is staged as loose editable files. Custom models
+outside these folders must also be included in your packaging cook settings.
+
+stats contains effective values: damage_base, damage_dice, damage_sides, range,
+attack_interval, projectile_speed, targets, attacks_ground, attacks_air, delivery,
+initial_level and damage_per_level. Damage bounds are calculated from dice rather
+than duplicated. Distances are Unreal cm; intervals/durations are seconds;
+fractions/chances are 0..1. delivery is projectile or instant. Projectiles use
+stable enemy IDs and apply effects after range / speed travel time.
+
+modifiers is an editable list of supported behaviors: critical, poison, splash,
+slow, splash_slow, attack_speed_aura, damage_aura, slow_aura, armor_aura, stun,
+armor_reduction, bonus_gold, mana, frost_nova and flame_strike. Adding a new tower
+or changing values does not require a C++ enum. Adding an entirely new behavior
+requires a handler in C++, and unknown behaviors are rejected rather than ignored.
+Tools/ValidateDefinitions.py documents required parameters for each behavior.
+Auras take the strongest value per channel; distinct channels add. Ice and poison
+slow separately. Aura target flags apply to ground/air units. Area damage honors
+armor and target categories. Dice and damage auras are applied once per shot.
+
+catalog.damage_table maps gem type IDs to armor type IDs. The original seven armor
+types and their multipliers are imported. Prototype waves default to Neutral (1x);
+set armor_type on a wave to use the original interactions. Positive/negative armor
+tables are editable. Fractional armor interpolates, negative armor caps at the last
+table entry, and positive values above the table use the continuous armor formula.
+
+Selected is a scrollable variable box for gems, stones and enemies. It shows live
+state, effective stats, all JSON fields (including custom nested fields), modifiers,
+recipe connections, import repairs and original source values. source_properties
+is reference metadata, not a second gameplay configuration: edit stats/modifiers.
+Runtime tower state includes level, kills, aura bonuses, target IDs, remaining
+cooldown, mana and pending projectiles. Level starts from initial_level; no automatic
+kill-to-level rule is invented because the linked source never increments it.
+Source sprite/game pointers map to Unreal meshes, the owning board and target IDs.
+
+SOURCE AND REPAIRS
+
+Pinned source: peterholko/gemtd commit
+058e9bd41c870a71f3e92159ea5cbebd30b6e137, TowerDefenseUpdate/Tower.m.
+The source files are preserved in Reference/GemTD. The importer reads assignments
+and declarations without executing downloaded code. It imports all 48 base gems,
+32 special towers, stone, 13 recipes and the damage table. Range is
+286 * rangeModifier * (100/26); projectile speed is
+500 * projectileModifier * (100/26), matching a 26px source gem to a 100cm footprint.
+The source's integer attackRange truncation is not reproduced.
+
+Approved repairs (original assignments remain in source_properties):
+- Jade ranks enable the poison described by their populated poison fields.
+- Uranium's 0.5 armor assignment becomes a 50% speed aura, and its burn attacks
+  use instant delivery. Uranium 238 upgrades to 235, as in this source.
+- Pink Diamond connects to Great Pink Diamond using its existing 175 gold cost.
+- Yellow Sapphire connects to Star Yellow Sapphire. Missing price uses 210 gold
+  from the previous classic JavaScript definitions.
+- Dark Emerald stun lasts 1.5 seconds, matching its description.
+- Red Crystal ranks use -4/-5/-6 armor as described, correcting the +1 mismatch.
+- Chipped Sapphire's isolated 50% damage aura is removed as an accidental assignment;
+  the other Sapphire grades and the previous classic definitions have no such aura.
+- Lucky Asian Jade gains the described 1% chance of half the wave number in gold
+  (rounded down). Its assigned poison, critical and stun abilities remain.
+- Paraiba's commented frost nova is completed: 20%, 200/250 damage, 5 mana.
+  Missing aura radii 86/93px, nova radius 29px, mana maximum 10 and regeneration
+  1.75/2 per second use the previous classic definitions. Slow is 50% for 5 seconds.
+  These completion values are explicit editable defaults, not literal Tower.m code.
+- Dark Emerald's recipe accidentally created BloodStone; result is corrected.
+- Paraiba's Flawed/Emerald recipe arguments are corrected. This source has three
+  ingredients, unlike the four-ingredient recipe previously used in this project.
+- Missing reset fields start at zero; effects do not leak from previous definitions.
+- All damage dice accumulate, and tower level bonuses use fractional arithmetic.
+- Ice lasts five seconds per Enemy.h. Splash slow includes splash damage.
+
+UberStone has no recipe, upgrade link or random-generation rule in this repository.
+It is explicitly marked availability=manual and can be placed via PlaceDefinition.
+Give it a recipe or upgrade link in the JSON to make it obtainable in ordinary play.
+
+Tools/ImportTowerDefinitions.py regenerates the files and overwrites manual balance
+edits. Do not rerun it during ordinary editing. The old JavaScript extractor is
+retained for historical reference only. Data tests: Tools/ValidateDefinitions.py;
+Unreal integration tests: VerifyProject.py and the -GemSmokeTest launch flag.

@@ -1,0 +1,20 @@
+{
+  "passed": [
+    "Default enumerates all 68 R/I/checkpoint/E/X tiles, preserving checkpoint order",
+    "Each route leg is shortest and every required road tile is visited in order",
+    "A quadrant-overlap road placement is permitted with a detour",
+    "One half-cell quadrant excludes its whole road tile",
+    "An untouched adjacent road remains mandatory",
+    "Road indices stay stable after placement",
+    "Blocked road is skipped and remaining tiles use shortest detours",
+    "A stone retains the same quadrant obstruction",
+    "Clearing gems restores road requirements and stable indices",
+    "Enclosing an unobstructed required road is rejected",
+    "Enclosed candidate does not count as overlapping the road",
+    "Enclosing a checkpoint is rejected",
+    "Covering a checkpoint is rejected",
+    "Edge-only contact does not exclude a neighboring road tile",
+    "30 generated maps enumerate all roads with ordered checkpoints and shortest route legs"
+  ],
+  "count": 15
+}

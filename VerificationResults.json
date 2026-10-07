@@ -33,25 +33,5 @@
     "Camera rotates and clamps pitch above the board",
     "Camera pans horizontally without changing altitude",
     "Camera reset restores the initial view"
-  ],
-  "runtime_passed": [
-    "Closing a wall across E-checkpoints-X is rejected",
-    "Five offers switch to selection and require an explicit gem selection",
-    "A sixth offer cannot be placed",
-    "Selecting an offered gem enables Place",
-    "Click-ray selection hits gem geometry",
-    "Clear Gems restarts placement",
-    "Place starts the wave",
-    "Only the chosen gem stays; four become stones",
-    "Clear Gems cannot erase the maze during combat",
-    "Enemies spawn at the E tile",
-    "Enemy selection exposes its live stats",
-    "Click-ray selection hits enemies",
-    "An escaping enemy removes one life and clears its selection",
-    "Two matching gems merge one grade higher",
-    "Four matching gems merge two grades higher"
-  ],
-  "runtime_failed": [],
-  "generated_maps_tested": 100,
-  "engine": "5.8.3"
+  ]
 }

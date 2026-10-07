@@ -21,10 +21,6 @@
 #include "Misc/FileHelper.h"
 #include "EngineUtils.h"
 
-static const TCHAR* GemNames[] = {TEXT("Amethyst"),TEXT("Aquamarine"),TEXT("Diamond"),TEXT("Emerald"),TEXT("Opal"),TEXT("Ruby"),TEXT("Sapphire"),TEXT("Topaz")};
-static const TCHAR* QualityNames[] = {TEXT("Chipped"),TEXT("Flawed"),TEXT("Normal"),TEXT("Flawless"),TEXT("Perfect")};
-static constexpr int32 QualityChances[9][5]={{100,0,0,0,0},{70,30,0,0,0},{60,30,10,0,0},{50,30,20,0,0},{40,30,20,10,0},{30,30,30,10,0},{20,30,30,20,0},{10,30,30,30,0},{0,30,30,30,10}};
-static constexpr int32 UpgradeCosts[9]={20,50,80,110,140,170,200,230,0};
 static bool IsCheckpoint(TCHAR Symbol) { return Symbol=='C' || (Symbol>='1' && Symbol<='9'); }
 
 AGemBoard::AGemBoard()
@@ -58,12 +54,6 @@ AGemBoard::AGemBoard()
     RouteMarkers->SetStaticMesh(Sphere.Object);
     RouteMarkers->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     RouteMarkers->SetCastShadow(false);
-    for (const TCHAR* Name:GemNames)
-    for (const TCHAR* Quality:QualityNames)
-    {
-        ConstructorHelpers::FObjectFinder<UStaticMesh> Mesh(*FString::Printf(TEXT("/Game/Gems/Meshes/SM_%s_%s.SM_%s_%s"),Name,Quality,Name,Quality));
-        GemModels.Add(Mesh.Object);
-    }
     Ghost=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlacementPreview"));
     Ghost->SetupAttachment(RootComponent);
     Ghost->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -104,9 +94,6 @@ void AGemBoard::PostLoad()
     Terrain.Reset();
     for (int32 I=0;I<7;++I)
         Terrain.Add(CastChecked<UInstancedStaticMeshComponent>(GetDefaultSubobjectByName(*FString::Printf(TEXT("Tiles_%d"),I))));
-    GemModels.Reset();
-    for (const TCHAR* Name:GemNames) for (const TCHAR* Quality:QualityNames)
-        GemModels.Add(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Game/Gems/Meshes/SM_%s_%s.SM_%s_%s"),Name,Quality,Name,Quality)));
     ApplyTerrainBlend();
 }
 void AGemBoard::BeginPlay() { Super::BeginPlay(); BuildLandscape(); ResetRun(); Ghost->SetVisibility(false); }
@@ -196,7 +183,7 @@ void AGemBoard::BuildLandscape()
         if (Type==EGroundType::Checkpoint)
             CheckpointMarkers->AddInstance(FTransform(FRotator::ZeroRotator,FVector((X-9.5f)*CellSize,(Y-9.5f)*CellSize,9.5f),FVector(.48f,.48f,.025f)));
     }
-    ApplyTerrainBlend(); RebuildRoute();
+    BuildRoadOrder(); ApplyTerrainBlend(); RebuildRoute();
 }
 void AGemBoard::ApplyTerrainBlend()
 {
@@ -231,7 +218,7 @@ bool AGemBoard::FootprintAvailable(FIntPoint P) const
     // Full 100x100 footprint. Touching edges are allowed; positive overlap is not.
     for (FIntPoint Other:Occupied) if (FMath::Abs(P.X-Other.X)<2 && FMath::Abs(P.Y-Other.Y)<2) return false;
     for (const FGroundTile& Tile:Tiles)
-        if ((Tile.Type==EGroundType::Checkpoint || Tile.Type==EGroundType::Intersection || Tile.Type==EGroundType::Entry || Tile.Type==EGroundType::Exit) && FMath::Abs(P.X-Tile.Cell.X*2)<2 && FMath::Abs(P.Y-Tile.Cell.Y*2)<2) return false;
+        if ((Tile.Type==EGroundType::Checkpoint || Tile.Type==EGroundType::Entry || Tile.Type==EGroundType::Exit) && FMath::Abs(P.X-Tile.Cell.X*2)<2 && FMath::Abs(P.Y-Tile.Cell.Y*2)<2) return false;
     return true;
 }
 bool AGemBoard::CanPlace(FIntPoint P) const
@@ -250,18 +237,23 @@ void AGemBoard::ApplyGemSize(UStaticMeshComponent* Mesh) const
 }
 void AGemBoard::Place(FIntPoint P,int32 Type,int32 Quality)
 {
-    if (Phase!=ERoundPhase::Placing || OffersPlaced>=5 || !CanPlace(P) || Type<0 || Type>=8 || Quality<0 || Quality>=5) return;
-    const int32 Model=Type*5+Quality;
-    if (!GemModels.IsValidIndex(Model) || !GemModels[Model]) return;
+    const auto* D=BaseDefinition(Type,Quality);
+    if(D) PlaceDefinition(P,FName(*D->Id));
+}
+void AGemBoard::PlaceDefinition(FIntPoint P,FName Id)
+{
+    const auto* D=FindDefinition(Id.ToString());
+    if (!DefinitionErrors.IsEmpty() || !D || Id.ToString()==RockDefinition || Phase!=ERoundPhase::Placing || OffersPlaced>=5 || !CanPlace(P)) return;
+    auto* Model=LoadObject<UStaticMesh>(nullptr,*D->Model); if(!Model) return;
     auto* Mesh=NewObject<UStaticMeshComponent>(this);
-    Mesh->SetupAttachment(RootComponent); Mesh->SetStaticMesh(GemModels[Model]);
+    Mesh->SetupAttachment(RootComponent); Mesh->SetStaticMesh(Model);
+    Mesh->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*D->Material));
     Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); Mesh->RegisterComponent();
     Mesh->SetWorldLocation(PlacementPosition(P)); ApplyGemSize(Mesh);
     Occupied.Add(P); Placed.Add(Mesh); Outlines.Add(CreateOutline(Mesh));
-    FGemPiece Piece; Piece.Type=Type; Piece.Quality=Quality;
+    FGemPiece Piece; Piece.DefinitionId=Id; Piece.Level=D->InitialLevel;
     Pieces.Add(Piece); AttackCooldown.Add(0); ++OffersPlaced;
-    Selected=Pieces.Num()-1;
-    SelectedEnemy=INDEX_NONE;
+    Selected=Pieces.Num()-1; SelectedEnemy=INDEX_NONE;
     if (OffersPlaced==5) { Phase=ERoundPhase::Choosing; Selected=INDEX_NONE; }
     RebuildRoute();
 }
@@ -276,7 +268,7 @@ void AGemBoard::ClearGems()
     for (const auto& Mesh:Placed) Mesh->DestroyComponent();
     for (const auto& Mesh:Outlines) Mesh->DestroyComponent();
     Outlines.Reset();
-    Placed.Reset(); Occupied.Reset();
+    Shots.Reset(); Placed.Reset(); Occupied.Reset();
     Pieces.Reset(); AttackCooldown.Reset(); Selected=INDEX_NONE; SelectedEnemy=INDEX_NONE;
 }
 void AGemBoard::LoadDefaultLayout()
@@ -392,24 +384,28 @@ void AGemBoard::Regenerate()
 void AGemBoard::UpdateGhost(FIntPoint P,int32 Type,bool Visible)
 {
     Ghost->SetVisibility(Visible);
-    if (!Visible || !GemModels.IsValidIndex(Type)) return;
+    if (!Visible) return;
     Ghost->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")));
     Ghost->SetWorldLocation(PlacementPosition(P)+FVector(0,0,1.5f));
     Ghost->SetMaterial(0,CanPlace(P)?ValidMaterial:InvalidMaterial);
     Ghost->SetWorldScale3D(FVector(.98f,.98f,.025f));
 }
-int32 AGemController::UpgradeCost() const { return UpgradeCosts[FMath::Clamp(ChanceLevel,0,8)]; }
-int32 AGemController::QualityChance(int32 Quality) const { return Quality>=0 && Quality<5 ? QualityChances[FMath::Clamp(ChanceLevel,0,8)][Quality] : 0; }
+int32 AGemController::UpgradeCost() const
+{ return Board && Board->ChanceLevels.IsValidIndex(ChanceLevel)?Board->ChanceLevels[ChanceLevel].Cost:0; }
+int32 AGemController::QualityChance(int32 Quality) const
+{
+    if(!Board || !Board->ChanceLevels.IsValidIndex(ChanceLevel) || !Board->Qualities.IsValidIndex(Quality)) return 0;
+    return Board->ChanceLevels[ChanceLevel].Weights.FindRef(Board->Qualities[Quality].Id);
+}
 int32 AGemController::RollQuality()
 {
-    const int32 Roll=FMath::RandRange(1,100);
-    int32 Cumulative=0;
-    for (int32 Quality=0;Quality<5;++Quality) { Cumulative+=QualityChance(Quality); if (Roll<=Cumulative) return Quality; }
-    return 4;
+    const int32 Roll=FMath::RandRange(1,100); int32 Cumulative=0;
+    if(Board) for(int32 Q=0;Q<Board->Qualities.Num();++Q) { Cumulative+=QualityChance(Q); if(Roll<=Cumulative) return Q; }
+    return INDEX_NONE;
 }
 void AGemController::UpgradeChance()
 {
-    if (ChanceLevel>=8) { Status=TEXT("Chance level is already at maximum"); return; }
+    if (!Board || ChanceLevel>=Board->MaxChanceLevel()) { Status=TEXT("Chance level is already at maximum"); return; }
     if (Gold<UpgradeCost()) { Status=TEXT("Not enough gold to upgrade chance"); return; }
     Gold-=UpgradeCost(); ++ChanceLevel;
     Status=FString::Printf(TEXT("Chance upgraded to level %d"),ChanceLevel);
@@ -430,6 +426,7 @@ void AGemController::BeginPlay()
     for (TActorIterator<AGemBoard> It(GetWorld());It;++It) { Board=*It; break; }
     if (!Board) Board=GetWorld()->SpawnActor<AGemBoard>();
     SetViewTarget(Board);
+    if(!Board->DefinitionErrors.IsEmpty()) { bShowSelection=true; Status=TEXT("Definition errors - see Selected panel"); }
     FInputModeGameAndUI Mode; Mode.SetHideCursorDuringCapture(false); SetInputMode(Mode);
     if (FParse::Param(FCommandLine::Get(),TEXT("GemSmokeTest")))
     {
@@ -476,9 +473,10 @@ void AGemController::BeginPlay()
         Board->Tick(.001f);
         Check(Board->Lives==19 && Board->SelectedEnemy==INDEX_NONE,TEXT("An escaping enemy removes one life and clears its selection"));
         Board->ResetRun(); OfferFive(); Board->SelectAt(FIntPoint(8,14));
-        Check(Board->MergeSelected(2) && Board->Pieces[0].Quality==1,TEXT("Two matching gems merge one grade higher"));
+        Check(Board->MergeSelected(2) && Board->Definition(0) && Board->Definition(0)->Quality==Board->Qualities[1].Id,TEXT("Two matching gems merge one grade higher"));
         Board->ResetRun(); OfferFive(); Board->SelectAt(FIntPoint(8,14));
-        Check(Board->MergeSelected(4) && Board->Pieces[0].Quality==2,TEXT("Four matching gems merge two grades higher"));
+        Check(Board->MergeSelected(4) && Board->Definition(0) && Board->Definition(0)->Quality==Board->Qualities[2].Id,TEXT("Four matching gems merge two grades higher"));
+        Board->RunDefinitionChecks(Check);
         UE_LOG(LogTemp,Display,TEXT("GEM_SMOKE_RESULTS: %d passed / %d failed"),Passed,Failed);
         Board->ResetRun();
         for (int32 I=0;I<5;++I) Board->Place(FIntPoint(8+I*4,14),I,I);
@@ -536,7 +534,14 @@ void AGemController::PlayerTick(float DeltaTime)
     { Board->Regenerate(); Status=TEXT("Generated 6 connected T-shaped checkpoints"); bShowSelection=false; }
     if (HasMouse && Click && X>W-Side+24 && X<W-24 && Y>=700 && Y<=742)
     { UpgradeChance(); }
+    if (WasInputKeyJustPressed(EKeys::F6)) Board->bShowRoadIndices=!Board->bShowRoadIndices;
     if (WasInputKeyJustPressed(EKeys::U)) UpgradeChance();
+    if (WasInputKeyJustPressed(EKeys::F5))
+    {
+        if(Board->GemCount()==0 && Board->Phase==ERoundPhase::Placing)
+        { Board->ReloadDefinitions(); ChanceLevel=FMath::Clamp(ChanceLevel,0,FMath::Max(0,Board->MaxChanceLevel())); Status=Board->DefinitionErrors.IsEmpty()?TEXT("Definitions reloaded"):TEXT("Definition errors - see Selected panel"); bShowSelection=true; InfoScroll=0; }
+        else Status=TEXT("Clear gems during the build phase before reloading definitions.");
+    }
     if (HasMouse && Click && X>W-Side+24 && X<W-24 && Y>=88 && Y<=120)
     { bShowSelection=X>W-Side+Side*.5f; InfoScroll=0; }
     if (HasMouse && X>W-Side && bShowSelection)
@@ -585,11 +590,11 @@ void AGemController::PlayerTick(float DeltaTime)
                     Board->SelectAt(Hover); bShowSelection=true; InfoScroll=0; Status=Board->SelectedDescription();
                 }
                 else if (Board->Phase!=ERoundPhase::Placing) Status=TEXT("Choose a gem to keep, or wait for the current wave to finish.");
-                else if (Board->CanPlace(Hover))
+                else if (Board->DefinitionErrors.IsEmpty() && !Board->GemTypes.IsEmpty() && Board->CanPlace(Hover))
                 {
-                    const int32 Type=FMath::RandRange(0,7),Quality=RollQuality();
+                    const int32 Type=FMath::RandRange(0,Board->GemTypes.Num()-1),Quality=RollQuality();
                     Board->Place(Hover,Type,Quality);
-                    Status=Board->Phase==ERoundPhase::Choosing?TEXT("Five gems offered. Select one, then press Place."):FString::Printf(TEXT("Placed %s %s"),QualityNames[Quality],GemNames[Type]);
+                    Status=Board->Phase==ERoundPhase::Choosing?TEXT("Five gems offered. Select one, then press Place."):FString::Printf(TEXT("Placed %s %s"),*Board->Qualities[Quality].Name,*Board->GemTypes[Type].Name);
                 }
                 else Status=TEXT("Blocked: overlap, protected tile, or no route from entry to exit");
             }
@@ -614,7 +619,7 @@ void AGemHUD::DrawHUD()
     Label(TEXT("GEM / TOWER DEFENSE"),24,21,Accent,1.1f);
     Label(FString(TEXT("GOLD  "))+FText::AsNumber(PC->Gold).ToString(),W*.20f,23,FLinearColor(1,.76f,.28f),.9f);
     if (PC->Board) Label(FString::Printf(TEXT("SCORE  %d   |   WAVE  %d   |   LIVES  %d"),PC->Board->Score,PC->Board->Wave,PC->Board->Lives),W*.43f,23,Ink,.85f);
-    Label(FString::Printf(TEXT("CHANCE LEVEL  %d / 8"),PC->ChanceLevel),W*.76f,23,Accent,.85f);
+    Label(FString::Printf(TEXT("CHANCE LEVEL  %d / %d"),PC->ChanceLevel,PC->Board?PC->Board->MaxChanceLevel():0),W*.76f,23,Accent,.85f);
     const float TabWidth=(Side-48)/2;
     DrawRect(!PC->bShowSelection?FLinearColor(.1f,.25f,.3f):FLinearColor(.04f,.09f,.14f),Left+24,88,TabWidth,32);
     DrawRect(PC->bShowSelection?FLinearColor(.1f,.25f,.3f):FLinearColor(.04f,.09f,.14f),Left+24+TabWidth,88,TabWidth,32);
@@ -626,7 +631,7 @@ void AGemHUD::DrawHUD()
         PC->InfoScroll=FMath::Clamp(PC->InfoScroll,0,FMath::Max(0,Lines.Num()-14));
         for (int32 I=PC->InfoScroll;I<Lines.Num() && I<PC->InfoScroll+14;++I)
             Label(Lines[I],Left+24,148+(I-PC->InfoScroll)*20,I==0?Accent:Ink,.76f);
-        if (Lines.Num()>14) Label(TEXT("Mouse wheel to scroll details"),Left+24,435,Muted,.72f);
+        if (Lines.Num()>14) Label(*FString::Printf(TEXT("Details %d-%d / %d / scroll"),PC->InfoScroll+1,FMath::Min(PC->InfoScroll+14,Lines.Num()),Lines.Num()),Left+24,435,Muted,.72f);
     }
     else if (PC->Board)
     {
@@ -650,15 +655,16 @@ void AGemHUD::DrawHUD()
     Label(TEXT("REGENERATE  /  6 CHECKPOINTS"),Left+36,471,Accent,.8f);
     Label(TEXT("R  Regenerate     D  Restore default"),Left+24,515,Muted,.75f);
     Label(FString::Printf(TEXT("GEM CHANCE / LEVEL %d"),PC->ChanceLevel),Left+24,551,Accent,.95f);
-    for (int32 Q=0;Q<5;++Q)
+    for (int32 Q=0;PC->Board && Q<PC->Board->Qualities.Num();++Q)
     {
-        Label(QualityNames[Q],Left+24,584+Q*20,Ink,.85f);
-        Label(FString::Printf(TEXT("%d%%"),PC->QualityChance(Q)),W-72,584+Q*20,PC->QualityChance(Q)>0?Accent:Muted,.85f);
+        const float RowStep=100.f/FMath::Max(1,PC->Board->Qualities.Num());
+        Label(PC->Board->Qualities[Q].Name,Left+24,580+Q*RowStep,Ink,.8f);
+        Label(FString::Printf(TEXT("%d%%"),PC->QualityChance(Q)),W-72,580+Q*RowStep,PC->QualityChance(Q)>0?Accent:Muted,.85f);
     }
     const bool UpgradeHot=ReadMouse(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=700 && MouseY<=742;
-    DrawRect(PC->ChanceLevel>=8?FLinearColor(.08f,.10f,.12f):UpgradeHot?FLinearColor(.38f,.30f,.12f):FLinearColor(.25f,.20f,.08f),Left+24,700,Side-48,42);
-    Label(PC->ChanceLevel>=8?TEXT("MAXIMUM CHANCE LEVEL"):FString::Printf(TEXT("UPGRADE / %d GOLD"),PC->UpgradeCost()),Left+36,714,FLinearColor(1,.76f,.28f),.85f);
-    Label(TEXT("U  Upgrade    |    Random gem type"),Left+24,754,Muted,.75f);
+    DrawRect((!PC->Board || PC->ChanceLevel>=PC->Board->MaxChanceLevel())?FLinearColor(.08f,.10f,.12f):UpgradeHot?FLinearColor(.38f,.30f,.12f):FLinearColor(.25f,.20f,.08f),Left+24,700,Side-48,42);
+    Label((!PC->Board || PC->ChanceLevel>=PC->Board->MaxChanceLevel())?TEXT("MAXIMUM CHANCE LEVEL"):FString::Printf(TEXT("UPGRADE / %d GOLD"),PC->UpgradeCost()),Left+36,714,FLinearColor(1,.76f,.28f),.85f);
+    Label(TEXT("U Upgrade chance / F5 Reload data"),Left+24,754,Muted,.75f);
     const bool ResetHot=ReadMouse(MouseX,MouseY) && MouseX>Left+24 && MouseX<W-24 && MouseY>=782 && MouseY<=820;
     DrawRect(ResetHot?FLinearColor(.12f,.30f,.4f):FLinearColor(.07f,.17f,.25f),Left+24,782,Side-48,38);
     Label(TEXT("RESET CAMERA / HOME"),Left+36,793,Accent,.85f);
@@ -692,6 +698,22 @@ void AGemHUD::DrawHUD()
             if (Project(Board->PlacementPosition(Board->CheckpointOrder[I]*2)+FVector(0,0,16),Screen)
                 && Screen.X>14 && Screen.X<Left-20 && Screen.Y>115 && Screen.Y<H-130)
                 Label(FString::FromInt(I+1),Screen.X-4,Screen.Y-7,FLinearColor(.05f,.045f,.02f),.8f);
+        }
+        if(Board->bShowRoadIndices)
+        {
+            Label(FString::Printf(TEXT("ROAD ORDER: %d / %d required  |  red = excluded  |  F6 toggle"),Board->RequiredRoadCount(),Board->RoadOrder.Num()),24,106,FLinearColor(.10f,.18f,.25f),.78f);
+            const int32 Target=Board->EnemyRoadTarget(Board->SelectedEnemy);
+            for(const auto& Tile:Board->RoadOrder)
+            {
+                FVector2D Screen;
+                if(Project(Board->PlacementPosition(Tile.Cell*2)+FVector(0,0,16),Screen) && Screen.X>20 && Screen.X<Left-25 && Screen.Y>130 && Screen.Y<H-120)
+                {
+                    const bool Marker=Tile.Checkpoint>0 || Tile.Cell==Board->EntryCell || Tile.Cell==Board->ExitCell;
+                    const float Y=Screen.Y+(Marker?6:-4);
+                    const FLinearColor Color=Tile.bExcluded?FLinearColor(.68f,.13f,.12f):Tile.Index==Target?FLinearColor(.8f,.36f,.02f):FLinearColor(.06f,.12f,.18f);
+                    Label(FString::Printf(TEXT("%s%d"),Tile.bExcluded?TEXT("x"):TEXT("#"),Tile.Index),Screen.X-9,Y,Color,.61f);
+                }
+            }
         }
         for (const auto& Enemy:Board->Enemies)
         {

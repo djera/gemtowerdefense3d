@@ -42,8 +42,19 @@ a tower, the other four become stone blocks, and the wave starts.
 CLEAR GEMS (C) clears the board during the build phase so gems can be
 re-placed. Left click gems, stones or enemies to inspect their live stats.
 Green preview = valid; red = overlap, protected tile, or blocked route.
-Every placement must preserve a path from E through all checkpoints to X.
-Roads may be blocked to create a maze; endpoints/checkpoint Ts are protected.
+Road tiles R/I/checkpoints/E/X are enumerated once, from 1 to N, along the
+E -> checkpoints 1..6 -> X journey, including every T side arm and road branch.
+Ground enemies take a shortest half-cell-grid path to each required tile in order;
+snow/grass can be used for detours. Flying enemies fly directly between those same
+required road targets. Each 2x2 road tile is excluded if a gem or rock overlaps any
+of its 1x1 half-cell quadrants. Edge-only contact does not exclude a tile.
+Indices stay stable while placing/removing objects. Checkpoints, E and X cannot
+be excluded. A placement is invalid if a checkpoint OR any remaining mandatory
+road tile becomes unreachable. I tiles may now be blocked like other road tiles.
+Road debug numbers are visible by default: #N = required, red xN = excluded.
+F6 toggles the overlay. Selecting an enemy shows its next required road index.
+VerifyRoadOrder.py independently checks shortest legs, complete coverage, partial
+obstruction, stone conversion, stable indices and rejection of enclosed targets.
 
 Right drag rotates the camera; middle drag pans. RESET CAMERA / Home
 restores its original angle and position. HUD scales to smaller windows.
@@ -53,10 +64,13 @@ V upgrades a selected special tower; X removes a selected stone in build.
 Twenty editable prototype waves, lives, score, targeting and modifiers run
 in the combat phase. Fixed waves are defined in Content/Data/Waves.json.
 Gem stats/modifiers/models are in Content/Data/Gems.json; classic special
-recipes are in Content/Data/Recipes.json. Great definitions are retained
-for reference; random rolls and ordinary merges use the five agreed grades.
-Tools/ExtractClassicDefinitions.py extracts factual values from the saved
-Classic reference source, with explicit conversion to Unreal units.
+recipes are in Content/Data/Recipes.json. Great is available through combining; random placement still uses the five-tier
+chance table. Great currently uses the Perfect model; each definition has an
+editable model path. F5 reloads data on an empty build board.
+Tools/ImportTowerDefinitions.py imports the pinned Tower.m reference. It
+overwrites the definitions, so do not run it after making balance edits.
+Content/Data/ImportNotes.txt documents source repairs, units and editing.
+The previous JavaScript extractor is historical and should not be rerun.
 
 Art uses pastel colors and three lighting bands, plus object outlines.
 assets/ArtPalette.json defines the colors used by SetupProject.py.

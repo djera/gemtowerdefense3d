@@ -1,8 +1,23 @@
 {
-  "FileVersion": 3,
-  "EngineAssociation": "5.8",
-  "Category": "Games",
-  "Description": "Isometric gem tower defense prototype",
-  "Modules": [{"Name": "GemTowerDefense", "Type": "Runtime", "LoadingPhase": "Default"}],
-  "Plugins": [{"Name": "PythonScriptPlugin", "Enabled": true}, {"Name": "EditorScriptingUtilities", "Enabled": true}]
+	"FileVersion": 3,
+	"EngineAssociation": "{47D13D05-4297-666D-4AD5-19AAD255F941}",
+	"Category": "Games",
+	"Description": "Isometric gem tower defense prototype",
+	"Modules": [
+		{
+			"Name": "GemTowerDefense",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		}
+	]
 }

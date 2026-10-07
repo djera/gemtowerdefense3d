@@ -1,5 +1,9 @@
 {
-  "source": "https://www.gemtowerdefense.com/",
+  "source": "https://github.com/peterholko/gemtd/blob/058e9bd41c870a71f3e92159ea5cbebd30b6e137/TowerDefenseUpdate/Game.m",
+  "notes": [
+    "Dark Emerald recipe wrongly created BloodStone; corrected.",
+    "Paraiba had the Flawed and Emerald arguments reversed; corrected. Uses the three ingredients in this source."
+  ],
   "recipes": [
     {
       "id": "BlackOpal",
@@ -116,6 +120,25 @@
       ]
     },
     {
+      "id": "Paraiba",
+      "name": "Paraiba",
+      "result": "Paraiba",
+      "ingredients": [
+        {
+          "id": "Aquamarine_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Opal_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Emerald_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
       "id": "PinkDiamond",
       "name": "Pink Diamond",
       "result": "PinkDiamond",
@@ -140,11 +163,11 @@
       "result": "RedCrystal",
       "ingredients": [
         {
-          "id": "Ruby_Normal",
+          "id": "Emerald_Flawless",
           "count": 1
         },
         {
-          "id": "Emerald_Flawless",
+          "id": "Ruby_Normal",
           "count": 1
         },
         {
@@ -159,15 +182,15 @@
       "result": "Silver",
       "ingredients": [
         {
+          "id": "Sapphire_Chipped",
+          "count": 1
+        },
+        {
           "id": "Topaz_Chipped",
           "count": 1
         },
         {
           "id": "Diamond_Chipped",
-          "count": 1
-        },
-        {
-          "id": "Sapphire_Chipped",
           "count": 1
         }
       ]
@@ -178,34 +201,34 @@
       "result": "StarRuby",
       "ingredients": [
         {
-          "id": "Ruby_Flawed",
-          "count": 1
-        },
-        {
           "id": "Ruby_Chipped",
           "count": 1
         },
         {
           "id": "Amethyst_Chipped",
           "count": 1
+        },
+        {
+          "id": "Ruby_Flawed",
+          "count": 1
         }
       ]
     },
     {
-      "id": "Uranium235",
-      "name": "Uranium235",
-      "result": "Uranium235",
+      "id": "Uranium238",
+      "name": "Uranium 238",
+      "result": "Uranium238",
       "ingredients": [
         {
           "id": "Topaz_Perfect",
           "count": 1
         },
         {
-          "id": "Sapphire_Normal",
+          "id": "Opal_Flawed",
           "count": 1
         },
         {
-          "id": "Opal_Flawed",
+          "id": "Sapphire_Normal",
           "count": 1
         }
       ]
@@ -225,29 +248,6 @@
         },
         {
           "id": "Ruby_Flawless",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "id": "ParaibaTourmaline",
-      "name": "Paraiba Tourmaline",
-      "result": "ParaibaTourmaline",
-      "ingredients": [
-        {
-          "id": "Aquamarine_Perfect",
-          "count": 1
-        },
-        {
-          "id": "Opal_Flawless",
-          "count": 1
-        },
-        {
-          "id": "Emerald_Flawed",
-          "count": 1
-        },
-        {
-          "id": "Aquamarine_Flawed",
           "count": 1
         }
       ]
