@@ -1,0 +1,362 @@
+[
+  {
+    "file": "SM_Amethyst_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Amethyst_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Amethyst_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Amethyst_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Amethyst_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Aquamarine_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Aquamarine_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Aquamarine_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Aquamarine_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Aquamarine_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Diamond_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Diamond_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Diamond_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Diamond_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Diamond_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Emerald_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Emerald_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Emerald_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Emerald_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Emerald_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Opal_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Opal_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Opal_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Opal_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Opal_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Ruby_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Ruby_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Ruby_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Ruby_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Ruby_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Sapphire_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Sapphire_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Sapphire_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Sapphire_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Sapphire_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Topaz_Chipped.fbx",
+    "dimensions_m": [
+      0.10046672821044922,
+      0.16090485453605652,
+      0.16756707429885864
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Topaz_Flawed.fbx",
+    "dimensions_m": [
+      0.09359999746084213,
+      0.14424735307693481,
+      0.1735154092311859
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Topaz_Flawless.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.125
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Topaz_Normal.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.11999999731779099,
+      0.15000000596046448
+    ],
+    "uv_layers": 1
+  },
+  {
+    "file": "SM_Topaz_Perfect.fbx",
+    "dimensions_m": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.23000000417232513
+    ],
+    "uv_layers": 1
+  }
+]

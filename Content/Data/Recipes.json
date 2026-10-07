@@ -1,0 +1,256 @@
+{
+  "source": "https://www.gemtowerdefense.com/",
+  "recipes": [
+    {
+      "id": "BlackOpal",
+      "name": "Black Opal",
+      "result": "BlackOpal",
+      "ingredients": [
+        {
+          "id": "Opal_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Diamond_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Aquamarine_Normal",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "BloodStone",
+      "name": "Blood Stone",
+      "result": "BloodStone",
+      "ingredients": [
+        {
+          "id": "Ruby_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Aquamarine_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Amethyst_Normal",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "DarkEmerald",
+      "name": "Dark Emerald",
+      "result": "DarkEmerald",
+      "ingredients": [
+        {
+          "id": "Emerald_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Sapphire_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Topaz_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "Gold",
+      "name": "Gold",
+      "result": "Gold",
+      "ingredients": [
+        {
+          "id": "Amethyst_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Amethyst_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Diamond_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "Jade",
+      "name": "Jade",
+      "result": "Jade",
+      "ingredients": [
+        {
+          "id": "Emerald_Normal",
+          "count": 1
+        },
+        {
+          "id": "Opal_Normal",
+          "count": 1
+        },
+        {
+          "id": "Sapphire_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "Malachite",
+      "name": "Malachite",
+      "result": "Malachite",
+      "ingredients": [
+        {
+          "id": "Opal_Chipped",
+          "count": 1
+        },
+        {
+          "id": "Emerald_Chipped",
+          "count": 1
+        },
+        {
+          "id": "Aquamarine_Chipped",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "PinkDiamond",
+      "name": "Pink Diamond",
+      "result": "PinkDiamond",
+      "ingredients": [
+        {
+          "id": "Diamond_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Topaz_Normal",
+          "count": 1
+        },
+        {
+          "id": "Diamond_Normal",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "RedCrystal",
+      "name": "Red Crystal",
+      "result": "RedCrystal",
+      "ingredients": [
+        {
+          "id": "Ruby_Normal",
+          "count": 1
+        },
+        {
+          "id": "Emerald_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Amethyst_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "Silver",
+      "name": "Silver",
+      "result": "Silver",
+      "ingredients": [
+        {
+          "id": "Topaz_Chipped",
+          "count": 1
+        },
+        {
+          "id": "Diamond_Chipped",
+          "count": 1
+        },
+        {
+          "id": "Sapphire_Chipped",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "StarRuby",
+      "name": "Star Ruby",
+      "result": "StarRuby",
+      "ingredients": [
+        {
+          "id": "Ruby_Flawed",
+          "count": 1
+        },
+        {
+          "id": "Ruby_Chipped",
+          "count": 1
+        },
+        {
+          "id": "Amethyst_Chipped",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "Uranium235",
+      "name": "Uranium235",
+      "result": "Uranium235",
+      "ingredients": [
+        {
+          "id": "Topaz_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Sapphire_Normal",
+          "count": 1
+        },
+        {
+          "id": "Opal_Flawed",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "YellowSapphire",
+      "name": "Yellow Sapphire",
+      "result": "YellowSapphire",
+      "ingredients": [
+        {
+          "id": "Sapphire_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Topaz_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Ruby_Flawless",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "ParaibaTourmaline",
+      "name": "Paraiba Tourmaline",
+      "result": "ParaibaTourmaline",
+      "ingredients": [
+        {
+          "id": "Aquamarine_Perfect",
+          "count": 1
+        },
+        {
+          "id": "Opal_Flawless",
+          "count": 1
+        },
+        {
+          "id": "Emerald_Flawed",
+          "count": 1
+        },
+        {
+          "id": "Aquamarine_Flawed",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

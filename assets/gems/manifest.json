@@ -1,0 +1,232 @@
+{
+  "colors_srgb": {
+    "Amethyst": "9747E6",
+    "Aquamarine": "48CEDD",
+    "Diamond": "EDF3F8",
+    "Emerald": "19AD59",
+    "Opal": "293344",
+    "Ruby": "DA294B",
+    "Sapphire": "294FCC",
+    "Topaz": "F4B52E"
+  },
+  "qualities": [
+    "Chipped",
+    "Flawed",
+    "Normal",
+    "Flawless",
+    "Perfect"
+  ],
+  "size_cm": {
+    "maximum_width": 20,
+    "maximum_height": 23
+  },
+  "grade_shapes": {
+    "Chipped": "Jagged narrow shard",
+    "Flawed": "Elongated rough hexagonal crystal",
+    "Normal": "Wide oval faceted stone",
+    "Flawless": "Square clipped-corner step cut",
+    "Perfect": "Brilliant crown with long pointed pavilion"
+  },
+  "assets": [
+    {
+      "name": "SM_Amethyst_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Amethyst_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Amethyst_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Amethyst_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Amethyst_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Aquamarine_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Aquamarine_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Aquamarine_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Aquamarine_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Aquamarine_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Diamond_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Diamond_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Diamond_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Diamond_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Diamond_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Emerald_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Emerald_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Emerald_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Emerald_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Emerald_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Opal_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Opal_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Opal_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Opal_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Opal_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Ruby_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Ruby_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Ruby_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Ruby_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Ruby_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Sapphire_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Sapphire_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Sapphire_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Sapphire_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Sapphire_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    },
+    {
+      "name": "SM_Topaz_Chipped",
+      "vertices": 21,
+      "triangles": 38
+    },
+    {
+      "name": "SM_Topaz_Flawed",
+      "vertices": 25,
+      "triangles": 46
+    },
+    {
+      "name": "SM_Topaz_Normal",
+      "vertices": 73,
+      "triangles": 142
+    },
+    {
+      "name": "SM_Topaz_Flawless",
+      "vertices": 41,
+      "triangles": 78
+    },
+    {
+      "name": "SM_Topaz_Perfect",
+      "vertices": 81,
+      "triangles": 158
+    }
+  ]
+}

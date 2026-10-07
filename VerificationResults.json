@@ -1,0 +1,19 @@
+{
+  "passed": [
+    "First cell fits",
+    "Last cell fits",
+    "Left border rejects protrusion",
+    "Right border rejects protrusion",
+    "Top border rejects protrusion",
+    "Same location is blocked",
+    "Half-cell overlap is blocked",
+    "Diagonal overlap is blocked",
+    "Touching edges allowed",
+    "Half-cell offset outside footprint allowed",
+    "Removal frees footprint",
+    "Half-cell world mapping",
+    "World position snaps correctly",
+    "Exactly 400 typed tiles",
+    "All four terrain types appear"
+  ]
+}

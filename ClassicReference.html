@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101816">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Gem TD">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="/mobile-layout.js?v=site-20260923-display-telemetry"></script>
+    <script src="/season2-mobile-ui.js?v=site-20260910-stable-selection" defer></script>
+    <script src="/recipe-tooltips.js?v=site-20260808-poll-removed" defer></script>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/assets/large_app.png">
+    <link rel="stylesheet" href="/css/_styles.css?v=site-20260904-battle-feedback">
+    <title>Gem Tower Defense</title>
+  </head>
+  <body id="tab1">
+    <div id="content">
+      <div class="gemtd-title-banner">
+        <a href="/"><img src="/assets/titlewide.jpg" alt="Gem Tower Defense" width="800" height="100"></a>
+      </div>
+      <div class="gemtd-mobile-launch">
+        <div class="gemtd-mobile-launch__modes" aria-label="Choose a game mode">
+          <button
+            type="button"
+            class="gemtd-mobile-mode-button gemtd-mobile-mode-button--classic"
+            data-gemtd-mobile-play-mode="classic"
+          >Classic</button>
+          <button
+            type="button"
+            class="gemtd-mobile-mode-button gemtd-mobile-mode-button--season1"
+            data-gemtd-mobile-play-mode="season1"
+          >Season 1</button>
+          <button
+            type="button"
+            class="gemtd-mobile-mode-button gemtd-mobile-mode-button--season2"
+            data-gemtd-mobile-play-mode="season2"
+          >Season 2</button>
+          <button
+            type="button"
+            class="gemtd-mobile-mode-button gemtd-mobile-mode-button--season2"
+            data-gemtd-mobile-play-mode="season3"
+            data-gemtd-season3-beta-launch
+            hidden
+          >Season 3 Alpha</button>
+          <button
+            type="button"
+            class="gemtd-mobile-mode-button gemtd-mobile-mode-button--battle"
+            data-gemtd-mobile-play-mode="battle"
+            data-gemtd-mobile-battle-launch
+            hidden
+          >Gem Battle</button>
+        </div>
+        <div class="gemtd-mobile-launch__actions" aria-label="Community links">
+          <button
+            type="button"
+            class="gemtd-mobile-launch-action"
+            aria-haspopup="dialog"
+            aria-controls="gemtd-mobile-panel"
+            data-gemtd-mobile-panel-open
+            data-gemtd-mobile-panel-title="High Scores"
+            data-gemtd-mobile-panel-src="/highscores/?layout=mobile&amp;embed=game-panel"
+          >High Scores</button>
+          <button
+            type="button"
+            class="gemtd-mobile-launch-action"
+            aria-haspopup="dialog"
+            aria-controls="gemtd-mobile-panel"
+            data-gemtd-mobile-panel-open
+            data-gemtd-mobile-panel-title="Comments"
+            data-gemtd-mobile-panel-src="/comments/?layout=mobile&amp;embed=game-panel"
+          >Comments</button>
+          <button
+            type="button"
+            class="gemtd-mobile-launch-action"
+            aria-haspopup="dialog"
+            aria-controls="gemtd-mobile-panel"
+            data-gemtd-mobile-panel-open
+            data-gemtd-mobile-panel-title="Updates"
+            data-gemtd-mobile-panel-src="/updates/?layout=mobile&amp;embed=game-panel"
+          >Updates</button>
+        </div>
+        <button
+          type="button"
+          class="gemtd-mobile-launch-action gemtd-mobile-launch-action--auth"
+          data-gemtd-mobile-auth
+        >Sign In</button>
+      </div>
+      <div class="gemtd-nav-shell" style="width:800px;padding:0;margin:0;">
+        <ul id="tabnav">
+          <li class="tab1"><a href="/">Classic</a></li>
+          <li class="tab6"><a href="/play/">Seasons</a></li>
+          <li class="tab2"><a href="/instructions/">Instructions</a></li>
+          <li class="tab3"><a href="/highscores/">High Scores</a></li>
+          <li class="tab4"><a href="/updates/">Updates</a></li>
+          <li class="tab5"><a href="/comments/">Comments</a></li>
+        </ul>
+      </div>
+      <div class="textBody">
+        Welcome to the JavaScript version of Gem Tower Defense, rebuilt to preserve the original game now that Adobe Flash is gone.
+        <br><br>
+        Please report bugs to gemtowerdefense@gmail.com.
+        <br><br>
+        <div id="gemtd-auth" class="gemtd-auth">
+          <span id="gemtd-auth-out">
+            Register &amp; Login for seasonal saving and to link submitted scores to your account (Classic remains playable without login) &mdash;
+            <a href="#" id="gemtd-auth-link">Register / Login</a>
+          </span>
+          <span id="gemtd-auth-in" style="display:none;">
+            Logged in as <a href="/profile/"><b id="gemtd-auth-name"></b></a> &mdash;
+            <a href="#" id="gemtd-auth-logout">Log out</a>
+          </span>
+        </div>
+        <br>
+      </div>
+
+      <aside
+        class="gemtd-season2-launch-notice gemtd-season2-launch-notice--desktop"
+        data-gemtd-season2-launch-notice
+        role="status"
+        hidden
+      >
+        <strong>Season 2 is underway.</strong>
+        <span>Season 2 runs for two full months. The last playable day is October 31, and the season closes November 1, 2026 at 12:00 a.m. Vancouver time.</span>
+        <div class="gemtd-season2-launch-prizes" aria-label="Season 2 podium badges up for grabs">
+          <strong class="gemtd-season2-launch-prizes__title">Finish in the top three to earn an official Season 2 podium badge:</strong>
+          <span class="gemtd-season2-launch-prize">
+            <img src="/assets/season2-champion-badge.png" alt="">
+            <span><b>1st</b> S2 Champion</span>
+          </span>
+          <span class="gemtd-season2-launch-prize">
+            <img src="/assets/season2-silver-badge.png" alt="">
+            <span><b>2nd</b> S2 Silver</span>
+          </span>
+          <span class="gemtd-season2-launch-prize">
+            <img src="/assets/season2-bronze-badge.png" alt="">
+            <span><b>3rd</b> S2 Bronze</span>
+          </span>
+        </div>
+      </aside>
+
+      <center class="gemtd-game-center">
+        <aside class="gemtd-legacy-client-notice" data-gemtd-legacy-client-notice role="status" hidden>
+          <span><strong>Saved Season 2 run:</strong> This page is using <span data-gemtd-legacy-client-version>an earlier version</span>.</span>
+          <span class="gemtd-legacy-client-notice__actions">
+            <button type="button" data-gemtd-continue-legacy-run>Continue saved run</button>
+            <a href="/?mode=season2&amp;fresh=season2" data-gemtd-start-current-season>Start new on current version</a>
+          </span>
+        </aside>
+        <div class="game-shell">
+          <div class="gemtd-mobile-rotate-prompt">Rotate your device to landscape to play Gem Tower Defense.</div>
+          <div class="gemtd-season2-mobile-ui" data-gemtd-season2-mobile-ui>
+            <header class="gemtd-season2-mobile-hud" aria-label="Run status">
+              <div class="gemtd-season2-mobile-hud__mode">
+                <strong data-gemtd-mobile-mode>Season 2</strong>
+                <span data-gemtd-mobile-phase>Choose your start</span>
+              </div>
+              <dl class="gemtd-season2-mobile-stats">
+                <div><dt>Level</dt><dd data-gemtd-mobile-level>1</dd></div>
+                <div><dt>Lives</dt><dd data-gemtd-mobile-lives>10</dd></div>
+                <div><dt>Gold</dt><dd data-gemtd-mobile-gold>10</dd></div>
+                <div><dt>Ticks</dt><dd data-gemtd-mobile-ticks>0</dd></div>
+                <div><dt>Score</dt><dd data-gemtd-mobile-score>0</dd></div>
+                <div data-gemtd-mobile-path-stat hidden><dt>Path</dt><dd data-gemtd-mobile-path title="Ground path length in tiles">—</dd></div>
+              </dl>
+              <p class="gemtd-mobile-battle-status" data-gemtd-mobile-battle-status hidden>
+                <strong data-gemtd-mobile-battle-opponent>Opponent</strong>
+                <span data-gemtd-mobile-battle-summary>Block 1 of 8</span>
+              </p>
+              <p
+                class="gemtd-season2-launch-notice gemtd-season2-launch-notice--mobile"
+                data-gemtd-season2-launch-notice
+                role="status"
+                hidden
+              ><strong>Season 2 runs through October 31.</strong> The top three players earn the S2 Champion, Silver, and Bronze badges.</p>
+            </header>
+            <div class="gemtd-season2-mobile-stage">
+              <div class="gemtd-season2-mobile-map" data-gemtd-mobile-map>
+                <div class="gemtd-season2-mobile-map__pan-layer" data-gemtd-mobile-map-pan-layer>
+                  <div id="gemtd"></div>
+                </div>
+                <div id="gemtd-boss-spell-bar" class="gemtd-boss-spell-bar" aria-label="Boss spell" hidden>
+                  <div class="gemtd-boss-spell-bar__group">
+                    <button id="gemtd-boss-spell-button" class="gemtd-boss-spell-button" type="button" disabled hidden>Cast Spell</button>
+                    <span class="gemtd-boss-spell-meter-wrap" aria-hidden="true">
+                      <progress id="gemtd-boss-spell-meter" class="gemtd-boss-spell-meter" max="60" value="0"></progress>
+                    </span>
+                    <span id="gemtd-boss-spell-count" class="gemtd-boss-spell-count">0/60 charge • 0/3 casts</span>
+                    <span id="gemtd-boss-spell-status" class="gemtd-boss-spell-status" aria-live="polite">20 charge to next cast</span>
+                  </div>
+                </div>
+              </div>
+              <aside class="gemtd-season2-mobile-controls" aria-label="Game controls">
+                <section class="gemtd-season2-mobile-selection" aria-live="polite">
+                  <img data-gemtd-mobile-selection-icon alt="" hidden>
+                  <div>
+                    <strong data-gemtd-mobile-selection-name>Choose your Level 1 start</strong>
+                    <p data-gemtd-mobile-selection-info>Select Malachite or Silver to begin Season 2.</p>
+                  </div>
+                </section>
+                <div class="gemtd-season2-mobile-primary-actions" data-gemtd-mobile-primary-actions>
+                  <p class="gemtd-season2-mobile-primary-actions__status">Loading Season 2…</p>
+                </div>
+                <nav class="gemtd-season2-mobile-utility-actions" aria-label="More game controls">
+                  <button type="button" data-gemtd-mobile-static-action="speed">4× Speed</button>
+                  <button type="button" data-gemtd-mobile-static-action="recipes">Recipes</button>
+                  <button type="button" data-gemtd-mobile-static-action="more">More</button>
+                </nav>
+              </aside>
+            </div>
+            <div
+              class="gemtd-season2-mobile-sheet"
+              data-gemtd-mobile-sheet
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="gemtd-season2-mobile-sheet-title"
+              hidden
+            >
+              <button class="gemtd-season2-mobile-sheet__backdrop" type="button" data-gemtd-mobile-sheet-close aria-label="Close"></button>
+              <section class="gemtd-season2-mobile-sheet__panel">
+                <header>
+                  <h2 id="gemtd-season2-mobile-sheet-title" data-gemtd-mobile-sheet-title>More</h2>
+                  <button type="button" data-gemtd-mobile-sheet-close>Close</button>
+                </header>
+                <div class="gemtd-season2-mobile-sheet__content" data-gemtd-mobile-sheet-content></div>
+              </section>
+            </div>
+          </div>
+          <div class="gemtd-mobile-game-actions" aria-label="Game links">
+            <button
+              type="button"
+              class="gemtd-mobile-game-action gemtd-mobile-game-action--left"
+              aria-haspopup="dialog"
+              aria-controls="gemtd-mobile-panel"
+              data-gemtd-mobile-panel-open
+              data-gemtd-mobile-panel-title="High Scores"
+              data-gemtd-mobile-panel-src="/highscores/?layout=mobile&amp;embed=game-panel"
+            >High Scores</button>
+            <button
+              type="button"
+              class="gemtd-mobile-game-action gemtd-mobile-game-action--right"
+              aria-haspopup="dialog"
+              aria-controls="gemtd-mobile-panel"
+              data-gemtd-mobile-panel-open
+              data-gemtd-mobile-panel-title="Comments"
+              data-gemtd-mobile-panel-src="/comments/?layout=mobile&amp;embed=game-panel"
+            >Comments</button>
+          </div>
+          <div class="gemtd-ios-fullscreen-prompt" data-gemtd-ios-fullscreen-prompt hidden>
+            <div class="gemtd-ios-fullscreen-prompt__copy">
+              <strong>Full screen on iPhone Safari</strong>
+              <span>Tap Share, Add to Home Screen, then open Gem TD from there.</span>
+            </div>
+            <button type="button" class="gemtd-ios-fullscreen-prompt__close" data-gemtd-ios-fullscreen-dismiss>Close</button>
+          </div>
+        </div>
+      </center>
+      <p class="gemtd-season2-poll-link" data-gemtd-season2-poll-link hidden>
+        <a href="/comments/#comment-poll-2">How should Uber Stones be handled in Season 2?</a>
+      </p>
+      <aside class="gemtd-battle-game-context" data-battle-game-context hidden></aside>
+      <aside class="gemtd-battle-rival-view" data-battle-rival-view hidden></aside>
+      <aside class="gemtd-battle-round-shop" data-battle-round-shop hidden></aside>
+      <div
+        id="gemtd-mobile-panel"
+        class="gemtd-mobile-panel"
+        data-gemtd-mobile-panel
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gemtd-mobile-panel-title"
+        aria-hidden="true"
+        hidden
+      >
+        <div class="gemtd-mobile-panel__bar">
+          <strong id="gemtd-mobile-panel-title" data-gemtd-mobile-panel-title>High Scores</strong>
+          <button type="button" class="gemtd-mobile-panel__close" data-gemtd-mobile-panel-close>Close</button>
+        </div>
+        <iframe
+          class="gemtd-mobile-panel__frame"
+          data-gemtd-mobile-panel-frame
+          title="High Scores"
+          loading="lazy"
+        ></iframe>
+      </div>
+      <div class="gemtd-game-spacer"><br><br><br></div>
+
+      <center id="special-gem-recipes">
+        <table>
+          <tr>
+            <td></td>
+            <td width="400" valign="top">
+              <center>
+                <h3>Special Gem Recipes</h3>
+                <table>
+                  <tr>
+                    <td><img src="/assets/blackopal.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectopal.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessdiamond.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normalaquamarine.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/bloodstone.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectruby.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessaquamarine.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normalamethyst.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/darkemerald.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectemerald.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlesssapphire.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedtopaz.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/gold.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectamethyst.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessamethyst.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flaweddiamond.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/jade.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/normalemerald.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normalopal.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedsapphire.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/malachite.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/chippedopal.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippedemerald.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippedaquamarine.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/pinkdiamond.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectdiamond.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normaltopaz.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normaldiamond.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/redcrystal.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/normalruby.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessemerald.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedamethyst.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/silver.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/chippedtopaz.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippeddiamond.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippedsapphire.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/starruby.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/flawedruby.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippedruby.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/chippedamethyst.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/uranium238.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfecttopaz.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/normalsapphire.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedopal.png"></td>
+                  </tr>
+                  <tr>
+                    <td><img src="/assets/yellowsapphire.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectsapphire.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlesstopaz.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessruby.png"></td>
+                  </tr>
+                </table>
+
+                <table>
+                  <tr>
+                    <td><img src="/assets/paraibatourmaline.png"></td>
+                    <td>=</td>
+                    <td><img src="/assets/perfectaquamarine.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawlessopal.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedemerald.png"></td>
+                    <td>+</td>
+                    <td><img src="/assets/flawedaquamarine.png"></td>
+                  </tr>
+                </table>
+              </center>
+            </td>
+            <td></td>
+          </tr>
+        </table>
+      </center>
+
+      <section
+        id="season-2-slate-recipes"
+        class="gemtd-slate-recipes"
+        data-gemtd-season2-slate-recipes
+        hidden
+      >
+        <h3>Slate Recipes</h3>
+        <p>Base slates require both listed gems from the same five-gem placement round.</p>
+        <div class="gemtd-table-scroll">
+          <table class="gemtd-slate-recipe-table" aria-label="Base slate recipes">
+            <thead>
+              <tr>
+                <th scope="col">Slate</th>
+                <th scope="col">Recipe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><img src="/assets/holdslate.png" alt=""> Hold</th>
+                <td><img src="/assets/normaltopaz.png" alt="Normal Topaz"> <span>Normal Topaz</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedamethyst.png" alt="Flawed Amethyst"> <span>Flawed Amethyst</span> <em>or</em> <img src="/assets/flawedsapphire.png" alt="Flawed Sapphire"> <span>Flawed Sapphire</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/airslate.png" alt=""> Air</th>
+                <td><img src="/assets/normalamethyst.png" alt="Normal Amethyst"> <span>Normal Amethyst</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedemerald.png" alt="Flawed Emerald"> <span>Flawed Emerald</span> <em>or</em> <img src="/assets/flawedopal.png" alt="Flawed Opal"> <span>Flawed Opal</span> <em>or</em> <img src="/assets/flawedruby.png" alt="Flawed Ruby"> <span>Flawed Ruby</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/opalveinslate.png" alt=""> Opal Vein</th>
+                <td><img src="/assets/normalopal.png" alt="Normal Opal"> <span>Normal Opal</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedruby.png" alt="Flawed Ruby"> <span>Flawed Ruby</span> <em>or</em> <img src="/assets/flawedtopaz.png" alt="Flawed Topaz"> <span>Flawed Topaz</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/slowslate.png" alt=""> Slow</th>
+                <td><img src="/assets/normalsapphire.png" alt="Normal Sapphire"> <span>Normal Sapphire</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedaquamarine.png" alt="Flawed Aquamarine"> <span>Flawed Aquamarine</span> <em>or</em> <img src="/assets/flaweddiamond.png" alt="Flawed Diamond"> <span>Flawed Diamond</span> <em>or</em> <img src="/assets/flawedemerald.png" alt="Flawed Emerald"> <span>Flawed Emerald</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/spellslate.png" alt=""> Spell</th>
+                <td><img src="/assets/normalaquamarine.png" alt="Normal Aquamarine"> <span>Normal Aquamarine</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedamethyst.png" alt="Flawed Amethyst"> <span>Flawed Amethyst</span> <em>or</em> <img src="/assets/flaweddiamond.png" alt="Flawed Diamond"> <span>Flawed Diamond</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/poisonslate.png" alt=""> Poison</th>
+                <td><img src="/assets/normalemerald.png" alt="Normal Emerald"> <span>Normal Emerald</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedaquamarine.png" alt="Flawed Aquamarine"> <span>Flawed Aquamarine</span> <em>or</em> <img src="/assets/flawedopal.png" alt="Flawed Opal"> <span>Flawed Opal</span> <em>or</em> <img src="/assets/flawedtopaz.png" alt="Flawed Topaz"> <span>Flawed Topaz</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/damageslate.png" alt=""> Damage</th>
+                <td><img src="/assets/normaldiamond.png" alt="Normal Diamond"> <span>Normal Diamond</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedopal.png" alt="Flawed Opal"> <span>Flawed Opal</span> <em>or</em> <img src="/assets/flawedsapphire.png" alt="Flawed Sapphire"> <span>Flawed Sapphire</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/rangeslate.png" alt=""> Range</th>
+                <td><img src="/assets/normalruby.png" alt="Normal Ruby"> <span>Normal Ruby</span> + <span class="gemtd-slate-recipe-options"><img src="/assets/flawedamethyst.png" alt="Flawed Amethyst"> <span>Flawed Amethyst</span> <em>or</em> <img src="/assets/flawedruby.png" alt="Flawed Ruby"> <span>Flawed Ruby</span> <em>or</em> <img src="/assets/flawedtopaz.png" alt="Flawed Topaz"> <span>Flawed Topaz</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Combination Slates</h4>
+        <p>Combine the two completed base slates shown, or make both base recipes directly in one placement round.</p>
+        <div class="gemtd-table-scroll">
+          <table class="gemtd-slate-recipe-table gemtd-slate-recipe-table--combinations" aria-label="Combination slate recipes">
+            <tbody>
+              <tr>
+                <th scope="row"><img src="/assets/ancientslate.png" alt=""> Ancient</th>
+                <td><img src="/assets/holdslate.png" alt="Hold Slate"> <span>Hold</span> + <img src="/assets/airslate.png" alt="Air Slate"> <span>Air</span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/wraithslate.png" alt=""> Wraith</th>
+                <td><img src="/assets/opalveinslate.png" alt="Opal Vein Slate"> <span>Opal Vein</span> + <img src="/assets/slowslate.png" alt="Slow Slate"> <span>Slow</span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/elderslate.png" alt=""> Elder</th>
+                <td><img src="/assets/spellslate.png" alt="Spell Slate"> <span>Spell</span> + <img src="/assets/poisonslate.png" alt="Poison Slate"> <span>Poison</span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/viperslate.png" alt=""> Viper</th>
+                <td><img src="/assets/damageslate.png" alt="Damage Slate"> <span>Damage</span> + <img src="/assets/rangeslate.png" alt="Range Slate"> <span>Range</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>Advanced Tower Fusion</h4>
+        <p>Both completed towers must already be on the board. Select either ingredient and use Combine Special.</p>
+        <div class="gemtd-table-scroll">
+          <table class="gemtd-slate-recipe-table gemtd-slate-recipe-table--combinations" aria-label="Advanced Season 2 tower fusion recipes">
+            <tbody>
+              <tr>
+                <th scope="row"><img src="/assets/sapphireknight.png" alt=""> Sapphire Knight</th>
+                <td><img src="/assets/silverknight.png" alt="Silver Knight"> <span>Silver Knight</span> + <img src="/assets/greatsapphire.png" alt="Great Sapphire"> <span>Great Sapphire</span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/diamondtrapper.png" alt=""> Diamond Trapper</th>
+                <td><img src="/assets/greatpinkdiamond.png" alt="Great Pink Diamond"> <span>Great Pink Diamond</span> + <img src="/assets/greatdiamond.png" alt="Great Diamond"> <span>Great Diamond</span></td>
+              </tr>
+              <tr>
+                <th scope="row"><img src="/assets/miasmaemerald.png" alt=""> Miasma Emerald</th>
+                <td><img src="/assets/enchantedemerald.png" alt="Enchanted Emerald"> <span>Enchanted Emerald</span> + <img src="/assets/greatemerald.png" alt="Great Emerald"> <span>Great Emerald</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="gemtd-slate-recipes__details"><a href="/season-2-details/">View complete Season 2 slate and advanced-fusion rules</a></p>
+      </section>
+
+      <div class="footer">
+        <p style="margin: 0px">Created by Peter Holko.</p>
+      </div>
+    </div>
+    <div id="gemtd-context-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,15,15,0.88);color:#fff;flex-direction:column;align-items:center;justify-content:center;z-index:9999;text-align:center;padding:24px;font-family:Verdana,sans-serif;">
+      <div id="gemtd-context-overlay-message" style="font-size:18px;margin-bottom:16px;max-width:480px;line-height:1.4;">Graphics paused &mdash; the browser dropped the game's GPU context.</div>
+      <div id="gemtd-context-overlay-hint" style="font-size:13px;opacity:0.75;margin-bottom:20px;max-width:480px;line-height:1.4;">It usually restores within a few seconds when you return to this tab.</div>
+      <button id="gemtd-context-reload" type="button" style="display:none;padding:10px 22px;font-size:14px;cursor:pointer;background:#2595d7;color:#fff;border:0;border-radius:4px;">Reload to recover</button>
+    </div>
+    <script>
+      (function () {
+        var outEl = document.getElementById('gemtd-auth-out');
+        var inEl = document.getElementById('gemtd-auth-in');
+        var nameEl = document.getElementById('gemtd-auth-name');
+        var linkEl = document.getElementById('gemtd-auth-link');
+        var logoutEl = document.getElementById('gemtd-auth-logout');
+        if (!outEl) { return; }
+
+        // Called by the game (window.gemtdShowAuth dialog) after a successful login,
+        // so the link updates without a reload.
+        window.gemtdRenderAuth = function (username, preseasonTesting, battleAccess) {
+          var mobileAuth = document.querySelector('[data-gemtd-mobile-auth]');
+          var seasonThreeBeta = document.querySelector('[data-gemtd-season3-beta-launch]');
+          var battleLaunch = document.querySelector('[data-gemtd-mobile-battle-launch]');
+          if (seasonThreeBeta) {
+            seasonThreeBeta.hidden = !(username && preseasonTesting === true);
+          }
+          if (battleLaunch) {
+            battleLaunch.hidden = !(username && battleAccess === true);
+          }
+          if (username) {
+            nameEl.textContent = username;
+            inEl.style.display = '';
+            outEl.style.display = 'none';
+            if (mobileAuth) {
+              mobileAuth.textContent = 'Continue as ' + username;
+              mobileAuth.setAttribute('data-gemtd-logged-in', 'true');
+            }
+            if (
+              window.GemTDLayout &&
+              typeof window.GemTDLayout.finishMobileAuth === 'function' &&
+              window.GemTDLayout.finishMobileAuth()
+            ) {
+              return;
+            }
+          } else {
+            inEl.style.display = 'none';
+            outEl.style.display = '';
+            if (mobileAuth) {
+              mobileAuth.textContent = 'Sign In';
+              mobileAuth.removeAttribute('data-gemtd-logged-in');
+            }
+          }
+        };
+
+        if (linkEl) {
+          linkEl.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (typeof window.gemtdShowAuth === 'function') {
+              window.gemtdShowAuth('login');
+            }
+          });
+        }
+
+        if (logoutEl) {
+          logoutEl.addEventListener('click', function (e) {
+            e.preventDefault();
+            fetch('/logout', { method: 'POST', credentials: 'same-origin' })
+              .then(function () { window.location.reload(); })
+              .catch(function () { window.location.reload(); });
+          });
+        }
+
+        fetch('/me', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (b) {
+            window.gemtdRenderAuth(
+              b && b.loggedIn ? b.username : null,
+              Boolean(b && b.preseasonTesting),
+              Boolean(b && b.battleAccess),
+            );
+          })
+          .catch(function () {});
+      })();
+    </script>
+  <script src="/messages/account.js?v=1" defer></script></body>
+</html>
+
